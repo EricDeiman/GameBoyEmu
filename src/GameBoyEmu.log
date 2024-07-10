@@ -1,0 +1,110 @@
+Tue Jul  9 22:52:39 2024|INFO|GameBoyEmu started
+Tue Jul  9 22:52:39 2024|INFO|Command line switches:
+Tue Jul  9 22:52:39 2024|INFO|   -L GameBoyEmu.log
+Tue Jul  9 22:52:39 2024|INFO|   -C GameBoyEmu.conf
+Tue Jul  9 22:52:39 2024|INFO|Configuration file entries:
+Tue Jul  9 22:52:39 2024|INFO|   Config file name: GameBoyEmu.conf
+Tue Jul  9 22:52:39 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 22:52:39 2024|INFO|   LogFile = GameBoyEmu.log
+Tue Jul  9 22:52:39 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 22:52:39 2024|INFO|GameBoyEmu ended
+Tue Jul  9 22:58:36 2024|INFO|GameBoyEmu started
+Tue Jul  9 22:58:36 2024|INFO|Command line switches:
+Tue Jul  9 22:58:36 2024|INFO|   -L GameBoyEmu.log
+Tue Jul  9 22:58:36 2024|INFO|   -C GameBoyEmu.conf
+Tue Jul  9 22:58:36 2024|INFO|Configuration file entries:
+Tue Jul  9 22:58:36 2024|INFO|   Config file name: GameBoyEmu.conf
+Tue Jul  9 22:58:36 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 22:58:36 2024|INFO|   LogFile = GameBoyEmu.log
+Tue Jul  9 22:58:36 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 22:58:36 2024|INFO|GameBoyEmu ended
+Tue Jul  9 23:57:26 2024|INFO|GameBoyEmu started
+Tue Jul  9 23:57:26 2024|INFO|Command line switches:
+Tue Jul  9 23:57:26 2024|INFO|   -L GameBoyEmu.log
+Tue Jul  9 23:57:26 2024|INFO|   -C GameBoyEmu.conf
+Tue Jul  9 23:57:26 2024|INFO|Configuration file entries:
+Tue Jul  9 23:57:26 2024|INFO|   Config file name: GameBoyEmu.conf
+Tue Jul  9 23:57:26 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 23:57:26 2024|INFO|   LogFile = GameBoyEmu.log
+Tue Jul  9 23:57:26 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 23:57:26 2024|INFO|GameBoyEmu ended
+Tue Jul  9 23:59:28 2024|INFO|GameBoyEmu started
+Tue Jul  9 23:59:28 2024|INFO|Command line switches:
+Tue Jul  9 23:59:28 2024|INFO|   -L GameBoyEmu.log
+Tue Jul  9 23:59:28 2024|INFO|   -C GameBoyEmu.conf
+Tue Jul  9 23:59:28 2024|INFO|Configuration file entries:
+Tue Jul  9 23:59:28 2024|INFO|   Config file name: GameBoyEmu.conf
+Tue Jul  9 23:59:28 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 23:59:28 2024|INFO|   LogFile = GameBoyEmu.log
+Tue Jul  9 23:59:28 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Tue Jul  9 23:59:28 2024|INFO|GameBoyEmu ended
+Wed Jul 10 00:00:26 2024|INFO|GameBoyEmu started
+Wed Jul 10 00:00:26 2024|INFO|Command line switches:
+Wed Jul 10 00:00:26 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 00:00:26 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 00:00:26 2024|INFO|Configuration file entries:
+Wed Jul 10 00:00:26 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 00:00:26 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 00:00:26 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 00:00:26 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 00:00:26 2024|INFO|GameBoyEmu ended
+Wed Jul 10 00:00:50 2024|INFO|GameBoyEmu started
+Wed Jul 10 00:00:50 2024|INFO|Command line switches:
+Wed Jul 10 00:00:50 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 00:00:50 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 00:00:50 2024|INFO|Configuration file entries:
+Wed Jul 10 00:00:50 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 00:00:50 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 00:00:50 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 00:00:50 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 00:00:50 2024|INFO|GameBoyEmu ended
+Wed Jul 10 11:36:03 2024|INFO|=== [ GameBoyEmu started ] ===
+Wed Jul 10 11:36:03 2024|INFO|Command line switches:
+Wed Jul 10 11:36:03 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 11:36:03 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 11:36:03 2024|INFO|Configuration file entries:
+Wed Jul 10 11:36:03 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 11:36:03 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:36:03 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 11:36:03 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:36:03 2024|INFO|GameBoyEmu ended
+Wed Jul 10 11:37:40 2024|INFO|=== [ GameBoyEmu started ] ===
+Wed Jul 10 11:37:40 2024|INFO|Command line switches:
+Wed Jul 10 11:37:40 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 11:37:40 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 11:37:40 2024|INFO|Configuration file entries:
+Wed Jul 10 11:37:40 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 11:37:40 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:37:40 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 11:37:40 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:37:40 2024|INFO|GameBoyEmu ended
+Wed Jul 10 11:38:33 2024|INFO|=== [ GameBoyEmu started ] ===
+Wed Jul 10 11:38:33 2024|INFO|Command line switches:
+Wed Jul 10 11:38:33 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 11:38:33 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 11:38:33 2024|INFO|Configuration file entries:
+Wed Jul 10 11:38:33 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 11:38:33 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:38:33 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 11:38:33 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:38:33 2024|INFO|GameBoyEmu ended
+Wed Jul 10 11:42:15 2024|INFO|=== [ GameBoyEmu started ] ===
+Wed Jul 10 11:42:15 2024|INFO|Command line switches:
+Wed Jul 10 11:42:15 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 11:42:15 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 11:42:15 2024|INFO|Configuration file entries:
+Wed Jul 10 11:42:15 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 11:42:15 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:42:15 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 11:42:15 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:42:15 2024|INFO|GameBoyEmu ended
+Wed Jul 10 11:42:49 2024|INFO|=== [ GameBoyEmu started ] ===
+Wed Jul 10 11:42:49 2024|INFO|Command line switches:
+Wed Jul 10 11:42:49 2024|INFO|   -L GameBoyEmu.log
+Wed Jul 10 11:42:49 2024|INFO|   -C GameBoyEmu.conf
+Wed Jul 10 11:42:49 2024|INFO|Configuration file entries:
+Wed Jul 10 11:42:49 2024|INFO|   Config file name: GameBoyEmu.conf
+Wed Jul 10 11:42:49 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:42:49 2024|INFO|   LogFile = GameBoyEmu.log
+Wed Jul 10 11:42:49 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Wed Jul 10 11:42:49 2024|INFO|GameBoyEmu ended

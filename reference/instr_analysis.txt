@@ -1,0 +1,31 @@
+So, how are 8-bit registers encoded?  It looks like 3 bits.
+
+For example, ADC A,B encoded 0x88 0b1000'1000
+             ADC A,C encoded 0x89 0b1000'1001
+             ADC A,D         0x8A 0b1000'1010
+             ADC A,E         0x8B 0b1000'1011
+             ADC A,H         0x8C 0b1000'1100
+             ADC A,L         0x8D 0b1000'1101
+             ADC A,(HL)      0x8E 0b1000'1110
+             ADC A,A         0x8F 0b1000'1111
+
+So, B is 0b000
+    C is 0b001
+    D is 0b010
+    E is 0b011
+    H is 0b100
+    L is 0b101
+    (HL) 0b110
+    A is 0b111
+
+Now, how are the 16-bit register encoded?  It looks like 2 bits
+For example, PUSH BC encoded 0xC5 0b1100'0101
+             PUSH DE encoded 0xD5 0b1101'0101
+             PUSH HL encoded 0xE5 0b1110'0101
+             PUSH AF encoded 0xF5 0b1111'0101
+
+So, BC is 0b00
+    DE is 0b01
+    HL is 0b10
+    AF is 0b11
+

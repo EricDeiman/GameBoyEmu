@@ -1,5 +1,5 @@
 
-#include "../../include/board.hh"
+#include "../include/board.hh"
 
 u8
 Board::read8( u16 address ) {

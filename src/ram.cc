@@ -7,7 +7,7 @@
 
 namespace fs = std::filesystem;
 
-#include "../../include/ram.hh"
+#include "../include/ram.hh"
 
 u8
 RAM::read8( u16 address ) {

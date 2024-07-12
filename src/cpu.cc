@@ -4,8 +4,8 @@
 #include <iostream>
 #include <ios>
 
-#include "../../include/cpu.hh"
-#include "../../include/common.hh"
+#include "../include/cpu.hh"
+#include "../include/common.hh"
 
 void
 CPU::_clock() {

@@ -108,3 +108,32 @@ Wed Jul 10 11:42:49 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
 Wed Jul 10 11:42:49 2024|INFO|   LogFile = GameBoyEmu.log
 Wed Jul 10 11:42:49 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
 Wed Jul 10 11:42:49 2024|INFO|GameBoyEmu ended
+Thu Jul 11 11:07:55 2024|INFO|=== [ GameBoyEmu started ] ===
+Thu Jul 11 11:07:55 2024|INFO|Command line switches:
+Thu Jul 11 11:07:55 2024|INFO|   -L GameBoyEmu.log
+Thu Jul 11 11:07:55 2024|INFO|   -C GameBoyEmu.conf
+Thu Jul 11 11:07:55 2024|INFO|Configuration file entries:
+Thu Jul 11 11:07:55 2024|INFO|   Config file name: GameBoyEmu.conf
+Thu Jul 11 11:07:55 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Thu Jul 11 11:07:55 2024|INFO|   LogFile = GameBoyEmu.log
+Thu Jul 11 11:07:55 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Thu Jul 11 11:07:55 2024|INFO|GameBoyEmu ended
+Fri Jul 12 09:38:24 2024|INFO|=== [ GameBoyEmu started ] ===
+Fri Jul 12 09:38:24 2024|INFO|Command line switches:
+Fri Jul 12 09:38:24 2024|INFO|   -L GameBoyEmu.log
+Fri Jul 12 09:38:24 2024|INFO|   -C GameBoyEmu.conf
+Fri Jul 12 09:38:24 2024|INFO|Configuration file entries:
+Fri Jul 12 09:38:24 2024|INFO|   Config file name: GameBoyEmu.conf
+Fri Jul 12 09:38:24 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Fri Jul 12 09:38:24 2024|INFO|   LogFile = GameBoyEmu.log
+Fri Jul 12 09:38:24 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Fri Jul 12 09:39:11 2024|INFO|=== [ GameBoyEmu started ] ===
+Fri Jul 12 09:39:11 2024|INFO|Command line switches:
+Fri Jul 12 09:39:11 2024|INFO|   -L GameBoyEmu.log
+Fri Jul 12 09:39:11 2024|INFO|   -C GameBoyEmu.conf
+Fri Jul 12 09:39:11 2024|INFO|Configuration file entries:
+Fri Jul 12 09:39:11 2024|INFO|   Config file name: GameBoyEmu.conf
+Fri Jul 12 09:39:11 2024|INFO|   Cart = ../ROM/cpu_instrs/cpu_instrs.gb
+Fri Jul 12 09:39:11 2024|INFO|   LogFile = GameBoyEmu.log
+Fri Jul 12 09:39:11 2024|INFO|Finished loading cartridge file ../ROM/cpu_instrs/cpu_instrs.gb
+Fri Jul 12 09:39:11 2024|INFO|GameBoyEmu ended

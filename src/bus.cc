@@ -1,5 +1,5 @@
 
-#include "../../include/bus.hh"
+#include "../include/bus.hh"
 
 Bus::Bus( RAM *ram ) : ram{ ram }{}
 

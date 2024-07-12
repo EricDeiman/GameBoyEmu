@@ -160,7 +160,7 @@ private:
   Bus* bus;
 
     InstDetails instrs[ 512 ] {
-#include "../src/CPU/_insr_details.hh"
+#include "../src/_insr_details.hh"
     };
 };
 

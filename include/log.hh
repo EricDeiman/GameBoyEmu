@@ -9,7 +9,8 @@ public:
   enum LogType {
     info,
     warn,
-    error
+    error,
+    debug
   };
 
   Log( std::string fileName );

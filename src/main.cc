@@ -1,5 +1,6 @@
 
 #include <algorithm>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -99,7 +100,21 @@ main( int argc, char** argv ) {
   }
 
   Board board;
-  board._clock();
+
+  try {
+    while( true ) {
+      board._clock();
+    }
+  }
+  catch( std::runtime_error& ex ) {
+    std::stringstream ss;
+    ss << ex.what() << ", PC = 0x" << std::hex << std::setfill( '0' ) <<  std::setw( 4 ) <<
+      board.getCpu().addrCurrentInstr;
+    ss << ", On tick " << std::dec << board.getCpu().ticks;
+
+    log.Write( Log::error, ss.str() );
+    std::cerr << "ERROR: " << ss.str() << std::endl;
+  }
 
   log.Write( Log::info, "GameBoyEmu ended" );
 

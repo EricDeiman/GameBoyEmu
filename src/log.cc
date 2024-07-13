@@ -29,6 +29,9 @@ Log::toString( Log::LogType t ) {
   case error:
     return "ERROR";
 
+  case debug:
+    return "DEBUG";
+
   default:
     return "UNKNOWN";
   }

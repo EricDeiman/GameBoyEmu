@@ -11,7 +11,7 @@
 #   perl makeCPUtable.pl > ../src/CPU/_insr_details.hh
 
 # a helpful script to generate the prototypes of the methods that need to be implemented:
-#   sed "s/\"[^\"]*\"//" ../src/CPU/_insr_details.hh | cut -d ',' -f 3 | sort | uniq | sed -E "s/&CPU::(.*)/void \1\( const InstDetails\&, u8, u8 \) { throw std::runtime_error( \"not implemented\" ); }/" > neededFns.txt 
+#   sed "s/\"[^\"]*\"//" ../src/CPU/_insr_details.hh | cut -d ',' -f 3 | sort | uniq | sed -E "s/&CPU::(.*)/u8 \1\( const InstDetails\&, u8, u8 \) { throw std::runtime_error( \"\1 not implemented\" ); }/" > neededFns.txt 
 
 use strict;
 use warnings;

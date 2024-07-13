@@ -1,8 +1,0 @@
-Mon Jul  8 19:57:42 2024|INFO|GameBoyEmu started
-Mon Jul  8 19:57:42 2024|INFO|Command line switches:
-Mon Jul  8 19:57:42 2024|INFO|   -c tetris.rom
-Mon Jul  8 19:57:42 2024|INFO|   -L SomeBoy.log
-Mon Jul  8 19:57:42 2024|INFO|   -C GameBoyEmu.conf
-Mon Jul  8 19:57:42 2024|INFO|Configuration file entries:
-Mon Jul  8 19:57:42 2024|INFO|   LogFile = GameBoyEmu.log
-Mon Jul  8 19:57:42 2024|INFO|GameBoyEmu ended

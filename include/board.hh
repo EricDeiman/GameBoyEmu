@@ -11,6 +11,8 @@
 class Board {
 public:
 
+  const CPU& getCpu();
+  
   u8 read8( u16 );
   void _clock();
 

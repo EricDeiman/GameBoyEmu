@@ -12,10 +12,6 @@ namespace fs = std::filesystem;
 
 u8
 RAM::read8( u16 address ) {
-  // char buffer[ 1024 ] = { 0 };
-  // sprintf( buffer, "In RAM::read8( 0x%04x ) = 0x%02x", address, _ram[address] & 0xff );
-  // _log->Write( Log::info, buffer );
-
   return _ram[address] & 0xff;
 }
 

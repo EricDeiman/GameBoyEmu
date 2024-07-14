@@ -13,41 +13,44 @@ class CPU {
 public:
 
   CPU( Bus* bus ) : bus{ bus }, regs{ .PC = 0x100 } {}
+
   void _clock();
+
   u16 addrCurrentInstr = 0;
   uint64_t ticks = 1;
   uint64_t waitUntilTicks = 1;
   bool interruptsEnabled = true;
+  bool singleStepMode = true;
 
   struct Registers {
     union {
       struct {
-        u8 B;
         u8 C;
+        u8 B;
       };
       u16 BC;
     };
 
     union {
       struct {
-        u8 D;
         u8 E;
+        u8 D;
       };
       u16 DE;
     };
 
     union {
       struct {
-        u8 H;
         u8 L;
+        u8 H;
       };
       u16 HL;
     };
 
     union {
       struct {
-        u8 A;
         u8 F;
+        u8 A;
       };
       u16 AF;
     };
@@ -85,7 +88,7 @@ public:
   u8 ADD( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ADD not implemented" ); }
   u8 AND( const InstDetails&, u8, u8 ) { throw std::runtime_error( "AND not implemented" ); }
   u8 BIT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "BIT not implemented" ); }
-  u8 CALL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CALL not implemented" ); }
+  u8 CALL( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "CALL not implemented" ); }
   u8 CCF( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CCF not implemented" ); }
   u8 CP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CP not implemented" ); }
   u8 CPL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CPL not implemented" ); }
@@ -100,7 +103,7 @@ public:
   u8 JP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JP not implemented" ); }
   u8 JR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "JR not implemented" ); }
   u8 LD( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LD not implemented" ); }
-  u8 LDH( const InstDetails&, u8, u8 ) { throw std::runtime_error( "LDH not implemented" ); }
+  u8 LDH( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LDH not implemented" ); }
   u8 NOP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "NOP not implemented" ); }
   u8 OR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "OR not implemented" ); }
   u8 POP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "POP not implemented" ); }
@@ -129,6 +132,7 @@ public:
   u8 SWAP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SWAP not implemented" ); }
   u8 XOR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "XOR not implemented" ); }
 
+  std::string debugSummary( const InstDetails&, u8, u8 );
   void debug( const InstDetails&, u8, u8 );
 private:
 

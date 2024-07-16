@@ -7,9 +7,11 @@
 #include "common.hh"
 #include "cpu.hh"
 #include "ram.hh"
+#include "timer.hh"
 
 class Board {
 public:
+  Board();
 
   const CPU& getCpu();
   
@@ -20,6 +22,7 @@ private:
   RAM ram;
   Bus bus{ &ram };
   CPU cpu{ &bus };
+  Timer timer;
 };
 
 #endif

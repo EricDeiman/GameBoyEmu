@@ -1,8 +1,7 @@
-CXXFLAGS += -std=c++17 
+CXXFLAGS += -std=c++17 -g
 DEPS := $(shell find . -name '*.d')
 
 gbe : $(DEPS:.d=.o)
-		echo $(DEPS)
 		g++ -o gbe $^
 
 include $(DEPS)

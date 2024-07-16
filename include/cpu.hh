@@ -12,15 +12,14 @@
 class CPU {
 public:
 
-  CPU( Bus* bus ) : bus{ bus }, regs{ .PC = 0x100 } {}
-
+  CPU( Bus* );
   void _clock();
 
   u16 addrCurrentInstr = 0;
   uint64_t ticks = 1;
   uint64_t waitUntilTicks = 1;
   bool interruptsEnabled = true;
-  bool singleStepMode = true;
+  bool singleStepMode = false;
 
   struct Registers {
     union {
@@ -133,7 +132,9 @@ public:
   u8 XOR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "XOR not implemented" ); }
 
   std::string debugSummary( const InstDetails&, u8, u8 );
+  // This method halts everything until it returns
   void debug( const InstDetails&, u8, u8 );
+ 
 private:
 
   u8 Registers::*pr8[ 8 ] {

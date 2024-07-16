@@ -4,10 +4,23 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include "../include/cpu.hh"
 #include "../include/common.hh"
+
+CPU::CPU( Bus* bus ) : bus{ bus } {
+  auto keys = conf->GetKeys();
+
+  auto hasStartDebug = std::find( keys.begin(), keys.end(), "StartInDebug" );
+
+  if( hasStartDebug != keys.end() ) {
+    singleStepMode = conf->GetValue( "StartInDebug" ) == "true";
+  }
+
+  regs.PC = 0x100;
+}
 
 std::string
 CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
@@ -61,14 +74,41 @@ CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   return buffer;
 }
 
+// This method halts everything until it return.
 void
 CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
+
   std::cout << debugSummary( instr, parm1, parm2 ) << std::endl;
+
+  for(;;) {
+    std::cout << "> ";
+    std::string input;
+    std::getline( std::cin, input );
+
+    std::stringstream commandLine{ input };
+    std::string command;
+
+    commandLine >> command;
+
+    if( command == "step" || command == "s" ) {
+      return;
+    }
+    else if( command == "dump" || command == "d" ) {
+      u16 addr;
+      commandLine >> std::hex >> addr;
+      auto mem = bus->hexDump( addr, 3 * 16 );
+      std::cout << mem;
+    }
+    else {
+      std::cout << "Available commands: (s)tep, (h)elp, (d)ump <address>" << std::endl;
+    }
+  }
+
+
 }
 
 void
 CPU::_clock() {
-
   ticks++;
 
   if( ticks >= waitUntilTicks ) {

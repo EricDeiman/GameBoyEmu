@@ -93,7 +93,7 @@ main( int argc, char** argv ) {
     log.Write( Log::info, "   " + key + " " + value );
   }
 
-  log.Write( Log::info, "Configuration file entries:" );
+  log.Write( Log::info, "Configuration settings:" );
   log.Write( Log::info, "   Config file name: " + _conf.GetFileName() );
   for( auto& key : _conf.GetKeys() ) {
     log.Write( Log::info, "   " + key + " = " + _conf.GetValue( key ) );

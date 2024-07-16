@@ -14,6 +14,11 @@ Config::Config( dictionary<>& cmdl ) {
   std::regex rex{ "=" };
 
   while (std::getline(is, line)) {
+    line = line.substr(0, line.find_first_of( '#' ) );
+    if( line.find_first_not_of( " \t" ) == std::string::npos ) {
+      continue;
+    }
+    
     std::vector< std::string >res{ split( line, "=" ) };
 
     _config[ res[ 0 ] ] = res[ 1 ];

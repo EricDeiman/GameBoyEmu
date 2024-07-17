@@ -2,12 +2,9 @@
 #include "../include/board.hh"
 
 Board::Board() {
-  ram.setBus( &bus );
-}
-
-const CPU&
-Board::getCpu() {
-  return cpu;
+  bus.initialize( &cpu, &ram, &timer );
+  cpu.initialize( &bus );
+  timer.initialize( &cpu, &ram, &bus );
 }
 
 u8
@@ -18,5 +15,10 @@ Board::read8( u16 address ) {
 void
 Board::_clock() {
   timer._clock();
-  cpu._clock();
+  cpu._clock();  // keep the cpu as the last call
+}
+
+CPU&
+Board::getCpu() {
+  return cpu;
 }

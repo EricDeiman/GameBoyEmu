@@ -3,14 +3,15 @@
 #include <ios>
 #include <iostream>
 #include <regex>
-#include <string>
 #include <sstream>
 #include <vector>
 
 #include "../include/cpu.hh"
+
+#include "../include/bus.hh"
 #include "../include/common.hh"
 
-CPU::CPU( Bus* bus ) : bus{ bus } {
+CPU::CPU() {
   auto keys = conf->GetKeys();
 
   auto hasStartDebug = std::find( keys.begin(), keys.end(), "StartInDebug" );
@@ -20,6 +21,12 @@ CPU::CPU( Bus* bus ) : bus{ bus } {
   }
 
   regs.PC = 0x100;
+
+}
+
+void
+CPU::initialize( Bus* bus ) {
+  this->bus = bus;
 }
 
 std::string
@@ -112,6 +119,8 @@ CPU::_clock() {
   ticks++;
 
   if( ticks >= waitUntilTicks ) {
+    processInterrupts();
+
     u8 params[2]{ 0 };
 
     // Read the instruction at PC
@@ -302,6 +311,30 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   }
 
   throw std::runtime_error( "At end of CPU::CALL with invalid opcode" );
+}
+
+void
+CPU::triggerInterrupt( CPU::Interrupt interrupt ) {
+  bus->write( Bus::IOAddress::IF, bus->read( Bus::IOAddress::IF ) | interrupt );
+}
+
+void
+CPU::processInterrupts() {
+  if( interruptsEnabled ) {
+    throw std::runtime_error( "CPU::processInterrupts not implemented yet" );
+
+    // interruptEnable = bus->read( 0xffff );
+    // The priority of interrupts is 1, 2, 4, 8, 16 in that order
+    // interruptRequest = bus->read( Bus::IOAddress::IF );
+    // for( auto i = 0b0000'0001; i < 0b0010'0000; i << 1 ) {
+    //   if( (interruptEnable & i > 1) && (interruptRequest & i > 1) ) {
+    //     push regs.PC onto stack
+    //     regs.PC = interrputHandler[ i ]
+    //     processingingInterrupt = i
+    //     break
+    //   }
+    // }
+  }
 }
 
 u8

@@ -12,17 +12,17 @@
 class Board {
 public:
   Board();
-
-  const CPU& getCpu();
   
   u8 read8( u16 );
   void _clock();
 
+  CPU& getCpu();
+
 private:
   RAM ram;
-  Bus bus{ &ram };
-  CPU cpu{ &bus };
-  Timer timer;
+  Bus bus;  // Bus needs to know about all the other components
+  CPU cpu;  // CPU needs to know abou the bus only
+  Timer timer;  // Timer needs to know about RAM and CPU
 };
 
 #endif

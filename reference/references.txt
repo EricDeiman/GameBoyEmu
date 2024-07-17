@@ -20,3 +20,17 @@ http://www.codeslinger.co.uk/pages/projects/gameboy/timers.html
 DMG_ROM.bin  claims to be original GameBoy startup ROM built into the device
 
 The Game Boy CPU is clocked at 4.194303 MHz
+4,194,303 cycles per second is .0000002384186 seconds per cycle
+A nanosecond is                .000000001 seconds
+So, each cycle is 238 nanoseconds
+
+Look into std::chrono, std::chrono::duration, and std::this_thread::sleep_for or 
+std::this_thread::sleep_until
+
+The HALT instruction puts the CPU into a low energy state that responds to interrupts,
+ while the STOP insruction stops the system clock until a button is pressed.
+
+The divider runs at 16384 Hz.  So, the system clock ticks 256 times for the
+divider to tick once
+
+

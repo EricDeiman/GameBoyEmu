@@ -4,21 +4,23 @@
 #include <cstddef>
 #include <memory>
 #include <string>
-#include <unordered_map>
 
 #include "common.hh"
-#include "bus.hh"
+
+class Bus;
 
 class CPU {
 public:
+  CPU();
 
-  CPU( Bus* );
+  void initialize( Bus* );
+
   void _clock();
 
   u16 addrCurrentInstr = 0;
   uint64_t ticks = 1;
   uint64_t waitUntilTicks = 1;
-  bool interruptsEnabled = true;
+  bool interruptsEnabled = false;
   bool singleStepMode = false;
 
   struct Registers {
@@ -57,6 +59,18 @@ public:
     u16 SP;
     u16 PC;
   } regs;
+
+  enum Interrupt {
+    VBlank = 0b0000'0001,
+    LCD    = 0b0000'0010,
+    Timer  = 0b0000'0100,
+    Serial = 0b0000'1000,
+    Joypad = 0b0001'0000,
+    Stat   = 0b0010'0000  // Not an interrupt flag, but still an interrupt
+  };
+
+  void triggerInterrupt( Interrupt );
+  void triggerStatInterrupt();
 
   // TODO: remove AddressingModes, not as helpful as I though it would be.
   enum AddressingModes {
@@ -155,7 +169,7 @@ private:
     &Registers::SP,  // &Registers::AF,  // changed for the LD insruction
   };
 
-  std::unordered_map< std::string, int > flagOffsets {
+  dictionary< std::string, int > flagOffsets {
     { "Z", 7 },
     { "N", 6 },
     { "H", 5 },
@@ -165,9 +179,23 @@ private:
 private:
   Bus* bus;
 
-    InstDetails instrs[ 512 ] {
+  dictionary< Interrupt, u16 > interruptHandler {
+    { Interrupt::VBlank, 0x40 },
+    { Interrupt::Timer, 0x50 },
+    { Interrupt::Serial, 0x58 },
+    { Interrupt::Joypad, 0x60 },
+    { Interrupt::Stat, 0x48 }
+  };
+
+  bool processStatInterrupt = false;
+
+  u8 processingInterrupt = 0;  // Set in the  processInterrupts method, cleared in the RETI method
+
+  void processInterrupts();
+
+  InstDetails instrs[ 512 ] {
 #include "../src/_insr_details.hh"
-    };
+  };
 };
 
 #endif

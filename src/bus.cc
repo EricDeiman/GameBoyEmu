@@ -1,6 +1,7 @@
 
 #include "../include/bus.hh"
 #include "../include/ram.hh"
+#include "../include/timer.hh"
 
 // Address	Name	  Description	            R/W
 // $FF00	  P1/JOYP	Joypad	                Mixed
@@ -46,12 +47,16 @@
 // $FF4A	  WY	    Window Y position	      R/W	
 // $FF4B	  WX	    Window X position plus 7	R/W	
 
-Bus::Bus( RAM *ram ) : ram{ ram } {
-  ram->setBus( this );
+void
+Bus::initialize( CPU* cpu, RAM* ram, Timer* timer ) {
+  this->cpu = cpu;
+  this->ram = ram;
+  this->timer = timer;
+
 }
 
 void
-Bus::doIO( u16 address ) {
+Bus::doIO( u16 address, u8 data ) {
   if( address < 0xff00 || 0xff7f < address ) {
     char buffer[ 1024 ] = { 0 };
     sprintf( buffer, "Attempt to do IO at address 0x%04x which is outside of IO map; doing nothing.", address );
@@ -59,10 +64,30 @@ Bus::doIO( u16 address ) {
   }
   else {
     switch( address ) {
+    case DIV:
+      // Any write to the divider address causes the value to be reset
+      data = 0;
+      ram->write( address, data );
+      break;
+    case TAC:
+      timer->setTAC( data );
+      ram->write( address, data);
+      break;
+    case IF:
+      ram->write( address, data );
+      break;
     default: {
-      char buffer[ 1024 ] = { 0 };
-      sprintf( buffer, "Bus::doIO to address 0x%04x not implemented", address );
-      throw std::runtime_error( buffer );
+      if( IOAddress::SOUND_START <= address && address <= IOAddress::SOUND_END ) {
+        char buffer[ 1024 ] = { 0 };
+        sprintf( buffer, "Sound IO port 0x%02x not implemented yet, attempt to write 0x%02x",
+                 address, data );
+        _log->Write( Log::warn, buffer );
+      }
+      else {
+        char buffer[ 1024 ] = { 0 };
+        sprintf( buffer, "Bus::doIO to address 0x%04x not implemented", address );
+        throw std::runtime_error( buffer );
+      }
     }
     }
   }
@@ -70,7 +95,7 @@ Bus::doIO( u16 address ) {
 
 u8
 Bus::read( u16 address ) {
-  return ram->read8(address);
+  return ram->read8( address );
 }
 
 std::string
@@ -80,5 +105,17 @@ Bus::hexDump( u16 start, u16 count ) {
 
 void
 Bus::write(u16 address, u8 data ){
-  ram->write( address, data );
+
+  if( address == Bus::IOAddress::DIV ) {
+    // Any write to the DIV io port set the port to zero
+    data = 0;
+  }
+
+  if( 0xff00 <= address && address <= 0xff7f ) {
+    doIO( address, data );
+  }
+  else {
+    ram->write( address, data );
+  }
+
 }

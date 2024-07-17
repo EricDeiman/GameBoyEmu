@@ -68,10 +68,6 @@ RAM::write( u16 address, u8 data ) {
   }
 
   _ram[ correctForEchoRAM( address ) ] = data;
-
-  if( 0xff00 <= address && address <= 0xff7f ) {
-    _bus->doIO( address );
-  }
 } 
 
 RAM::RAM() {

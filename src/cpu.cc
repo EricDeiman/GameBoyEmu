@@ -211,6 +211,17 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     }
   }  // block zero
     break;
+  case 1: {
+    // load register to register
+    u8 srcIndex = instr.binary & 0b111;
+    u8 dstIndex = ( instr.binary >> 3 ) & 0b111;
+
+    auto srcPtr = pr8[ srcIndex ];
+    auto dstPtr = pr8[ dstIndex ];
+
+    this->regs.*dstPtr = this->regs.*srcPtr;
+  } // block one
+    break;
   case 3: {
     switch( instr.binary ) {
     case 0xea: {
@@ -252,11 +263,6 @@ u8
 CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   u16 callAddress = ( parm2 << 8 ) | parm1;
 
-  // Emulationg a little-endian machine on a little-endian machine can be confusing.
-  // The low and high order bytes below are really correct--they do not need to be swapped
-  u8 returnAddressHi = regs.PC & 0xff;
-  u8 returnAddressLo = ( regs.PC >> 8 ) & 0xff;
-
   u8 opcode = instr.binary & 0x7;
   u8 conditionCode = ( instr.binary >> 3 ) & 3;
 
@@ -295,8 +301,7 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     }
 
     if( doCall ) {
-      bus->write( regs.SP--, returnAddressLo );
-      bus->write( regs.SP--, returnAddressHi );
+      push( regs.PC );
       
       regs.PC = callAddress;
 
@@ -308,18 +313,16 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   }
     break;
   case 0x5:
-    // unconditional call  
-    bus->write( regs.SP--, returnAddressLo );
-    bus->write( regs.SP--, returnAddressHi );
-
+    // unconditional call
+    push( regs.PC );
     regs.PC = callAddress;
-
     return instr.cycles1;
-
     break;
   }
 
-  throw std::runtime_error( "At end of CPU::CALL with invalid opcode" );
+  char buffer[ 1024 ] = { 0 };
+  sprintf( buffer, "At end of CPU::CALL with invalid opcode 0x%02x", instr.binary );
+  throw std::runtime_error( buffer );
 }
 
 void
@@ -344,6 +347,61 @@ CPU::processInterrupts() {
     //   }
     // }
   }
+}
+
+void
+CPU::push( u16 address ) {
+  // Emulating a little-endian machine on a little-endian machine can be confusing.
+  // The low and high order bytes below are really correct--they do not need to be swapped
+  u8 addressHi = address & 0xff;
+  u8 addressLo = ( address >> 8 ) & 0xff;
+
+  bus->write( regs.SP--, addressLo );
+  bus->write( regs.SP--, addressHi );
+}
+
+u16
+CPU::pop() {
+  // See note in push method about swapping (or not) the bytes when emulating little-endian
+  // hardware on little-endian hardware.
+  u8 addressHi = bus->read( ++regs.SP );
+  u8 addressLo = bus->read( ++regs.SP );
+
+  return ( addressLo << 8 ) | addressHi;
+}
+
+u8
+CPU::JR( const InstDetails& instr, u8 parm1, u8 ) {
+  // Jump relative to the current PC (program counter).  Parm1 is a signed 8-bit offset
+  // that's added to PC.
+
+  auto conditional = ( instr.binary & 0b0010'0000 ) > 0;
+
+  auto offset = static_cast< std::int8_t >( parm1 );
+
+  if( conditional ) {
+    throw std::runtime_error( "Conditional relative jump not implemented yet" );
+  }
+  else {
+    regs.PC += offset;
+    return instr.cycles1;
+  }
+}
+
+u8
+CPU::RET( const InstDetails& instr, u8, u8 ) {
+
+  if( instr.binary & 0x1 ) {
+    // unconditional return
+    regs.PC = pop();
+    return instr.cycles1;
+  }
+  else {
+    // conditional return
+    throw std::runtime_error( "Conditional return not yet implemented" );
+  }
+
+  return 0;
 }
 
 u8

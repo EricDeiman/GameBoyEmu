@@ -70,6 +70,58 @@ RAM::write( u16 address, u8 data ) {
   _ram[ correctForEchoRAM( address ) ] = data;
 } 
 
+dictionary< int, std::string >CartType = {
+  { 0x00, "ROM ONLY" },
+  { 0x01, "MBC1" },
+  { 0x02, "MBC1+RAM" },
+  { 0x03, "MBC1+RAM+BATTERY" },
+  { 0x05, "MBC2" },
+  { 0x06, "MBC2+BATTERY" },
+  { 0x08, "ROM+RAM" },
+  { 0x09, "ROM+RAM+BATTERY" },
+  { 0x0B, "MMM01" },
+  { 0x0C, "MMM01+RAM" },
+  { 0x0D, "MMM01+RAM+BATTERY" },
+  { 0x0F, "MBC3+TIMER+BATTERY" },
+  { 0x10, "MBC3+TIMER+RAM+BATTERY" },
+  { 0x11, "MBC3" },
+  { 0x12, "MBC3+RAM" },
+  { 0x13, "MBC3+RAM+BATTERY" },
+  { 0x19, "MBC5" },
+  { 0x1A, "MBC5+RAM" },
+  { 0x1B, "MBC5+RAM+BATTERY" },
+  { 0x1C, "MBC5+RUMBLE" },
+  { 0x1D, "MBC5+RUMBLE+RAM" },
+  { 0x1E, "MBC5+RUMBLE+RAM+BATTERY" },
+  { 0x20, "MBC6" },
+  { 0x22, "MBC7+SENSOR+RUMBLE+RAM+BATTERY" },
+  { 0xFC, "POCKET CAMERA" },
+  { 0xFD, "BANDAI TAMA5" },
+  { 0xFE, "HuC3" },
+  { 0xFF, "HuC1+RAM+BATTERY" },
+};
+
+std::string ROMsizes[] = {
+  "32 KiB",
+  "64  KiB",
+  "128 KiB",
+  "256 KiB",
+  "512 KiB",
+  "1 MiB",
+  "2 MiB",
+  "4 MiB",
+  "8 MiB",
+};
+
+std::string RAMsizes[] = {
+  "No RAM",
+  "Public domain cartridge",
+  "8 KiB",
+  "32 KiB",
+  "128 KiB",
+  "64 KiB"
+};
+
 RAM::RAM() {
   std::string cartFileName;
 
@@ -90,6 +142,41 @@ RAM::RAM() {
       inFile.read( _ram.data(), fileSize );
 
       _log->Write( Log::info, "Finished loading cartridge file " + cartFileName );
+
+      // Print cart header to log
+      char buffer[ 1024 ] = { 0 };
+      sprintf( buffer, "   Title = %s", static_cast< char* >( _ram.data() + 0x134 ) );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   Old licensee code = 0x%02x", _ram[ 0x14b ] );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   New licensee code = %c%c",
+               static_cast< char >( _ram[ 0x144 ] ),
+               static_cast< char >( _ram[ 0x145 ] ) );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   Cartridge type = 0x%02x ( %s )",
+               _ram[ 0x147 ], CartType[ _ram[ 0x147 ] ].c_str() );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   ROM size = 0x%02x ( %s )",
+               _ram[ 0x148 ], ROMsizes[ static_cast< int >( _ram[ 0x148 ] ) ].c_str() );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   RAM size = 0x%02x ( %s )",
+               _ram[ 0x149 ], RAMsizes[ static_cast< int >( _ram[ 0x149 ] ) ].c_str() );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   Destination code = 0x%02x", _ram[ 0x14a ] );
+      _log->Write( Log::info, buffer );
+
+      sprintf( buffer, "   Header checksum = 0x%02x", _ram[ 0x14d ] );
+      _log->Write( Log::info, buffer );
+
+      sprintf(buffer, "   Global checksum = 0x%02hhx%02hhx", _ram[ 0x14e ], _ram[ 0x14f ] );
+      _log->Write( Log::info, buffer );
+
     }
     else {
       _log->Write(Log::error, "No cartridge file to open" );

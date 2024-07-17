@@ -114,7 +114,7 @@ public:
   u8 ILL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ILL not implemented" ); }
   u8 INC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "INC not implemented" ); }
   u8 JP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JP not implemented" ); }
-  u8 JR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "JR not implemented" ); }
+  u8 JR( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JR not implemented" ); }
   u8 LD( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LD not implemented" ); }
   u8 LDH( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LDH not implemented" ); }
   u8 NOP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "NOP not implemented" ); }
@@ -123,7 +123,7 @@ public:
   u8 PREFIX( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PREFIX not implemented" ); }
   u8 PUSH( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PUSH not implemented" ); }
   u8 RES( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RES not implemented" ); }
-  u8 RET( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RET not implemented" ); }
+  u8 RET( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "RET not implemented" ); }
   u8 RETI( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RETI not implemented" ); }
   u8 RL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RL not implemented" ); }
   u8 RLA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLA not implemented" ); }
@@ -192,6 +192,9 @@ private:
   u8 processingInterrupt = 0;  // Set in the  processInterrupts method, cleared in the RETI method
 
   void processInterrupts();
+
+  void push( u16 );
+  u16 pop();
 
   InstDetails instrs[ 512 ] {
 #include "../src/_insr_details.hh"

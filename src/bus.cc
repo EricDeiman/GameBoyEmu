@@ -79,7 +79,7 @@ Bus::doIO( u16 address, u8 data ) {
     default: {
       if( IOAddress::SOUND_START <= address && address <= IOAddress::SOUND_END ) {
         char buffer[ 1024 ] = { 0 };
-        sprintf( buffer, "Sound IO port 0x%02x not implemented yet, attempt to write 0x%02x",
+        sprintf( buffer, "Sound IO port 0x%04x not implemented yet, attempt to write 0x%02x",
                  address, data );
         _log->Write( Log::warn, buffer );
       }

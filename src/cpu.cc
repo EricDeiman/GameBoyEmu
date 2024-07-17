@@ -202,8 +202,11 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       this->regs.*dest = parm1;
     }
       break;  // block zero opcode e
-    default:
-      throw std::runtime_error( "Block zero LD instruction not implemented" );
+    default: {
+      char buffer[ 1024 ] = { 0 };
+      sprintf( buffer, "Block zero LD instruction 0x%02x not implemented", b0opcode );
+      throw std::runtime_error( buffer );
+      }
       break;
     }
   }  // block zero
@@ -220,8 +223,11 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     }
   } // block 3
     break;
-  default:
-    throw std::runtime_error( "LD instruction not implemented" );
+  default: {
+    char buffer[ 1024 ] = { 0 };
+    sprintf( buffer, "LD instruction 0x%02x not implemented", instr.binary );
+    throw std::runtime_error( buffer );
+    }
     break;
   }
 
@@ -245,8 +251,11 @@ CPU::LDH( const InstDetails& instr, u8 parm1, u8 ) {
 u8
 CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   u16 callAddress = ( parm2 << 8 ) | parm1;
-  u8 returnAddressLo = regs.PC & 0xff;
-  u8 returnAddressHi = ( regs.PC >> 8 ) & 0xff;
+
+  // Emulationg a little-endian machine on a little-endian machine can be confusing.
+  // The low and high order bytes below are really correct--they do not need to be swapped
+  u8 returnAddressHi = regs.PC & 0xff;
+  u8 returnAddressLo = ( regs.PC >> 8 ) & 0xff;
 
   u8 opcode = instr.binary & 0x7;
   u8 conditionCode = ( instr.binary >> 3 ) & 3;
@@ -286,8 +295,8 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     }
 
     if( doCall ) {
-      bus->write( --regs.SP, returnAddressLo );
-      bus->write( --regs.SP, returnAddressHi );
+      bus->write( regs.SP--, returnAddressLo );
+      bus->write( regs.SP--, returnAddressHi );
       
       regs.PC = callAddress;
 
@@ -300,8 +309,8 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     break;
   case 0x5:
     // unconditional call  
-    bus->write( --regs.SP, returnAddressLo );
-    bus->write( --regs.SP, returnAddressHi );
+    bus->write( regs.SP--, returnAddressLo );
+    bus->write( regs.SP--, returnAddressHi );
 
     regs.PC = callAddress;
 

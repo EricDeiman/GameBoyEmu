@@ -155,6 +155,28 @@ CPU::NOP( const InstDetails &instr, u8, u8 ) {
   return instr.cycles1;
 }
 
+bool
+CPU::checkCondCode( u8 condCode ) {
+  u8 Zmask = 0x80;
+  u8 Cmask = 0x10;
+
+  bool isZ = (regs.F & Zmask) > 0;
+  bool isC = (regs.F & Cmask) > 0;
+
+  switch (condCode) {
+  case 0:
+    return !isZ;
+  case 1:
+    return isZ;
+  case 2:
+    return !isC;
+  case 3:
+    return isC;
+  }
+
+  return false;
+}
+
 u8
 CPU::JP( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   // Remember, the SM83, along with the 8080 and Z80 are little endian
@@ -164,29 +186,7 @@ CPU::JP( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     regs.PC = bus->read( regs.HL );
     break;
   case 2: {
-    u8 Zmask = 0x80;
-    u8 Cmask = 0x10;
-
-    bool isZ = (regs.F & Zmask) > 0;
-    bool isC = (regs.F & Cmask) > 0;
-
-    bool doJump = false;
-    u8 conditionCode = ( instr.binary >> 3 ) & 0b11;
-
-    switch (conditionCode) {
-    case 0:
-      doJump = !isZ;
-      break;
-    case 1:
-      doJump = isZ;
-      break;
-    case 2:
-      doJump = !isC;
-      break;
-    case 3:
-      doJump = isC;
-      break;
-    }
+    bool doJump = checkCondCode( ( instr.binary >> 3 ) & 0b11 );
 
     if ( doJump ) {
       push(regs.PC);
@@ -336,28 +336,7 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   switch( opcode ) {
   case 0x4: {
     // conditional call
-    u8 Zmask = 0x80;
-    u8 Cmask = 0x10;
-
-    bool isZ = (regs.F & Zmask) > 0;
-    bool isC = (regs.F & Cmask) > 0;
-
-    bool doCall = false;
-
-    switch( conditionCode ){
-    case 0:
-      doCall = !isZ;
-      break;
-    case 1:
-      doCall = isZ;
-      break;
-    case 2:
-      doCall = !isC;
-      break;
-    case 3:
-      doCall = isC;
-      break;
-    }
+    bool doCall = checkCondCode( conditionCode );
 
     if( doCall ) {
       push( regs.PC );
@@ -438,29 +417,7 @@ CPU::JR( const InstDetails& instr, u8 parm1, u8 ) {
   auto offset = static_cast< std::int8_t >( parm1 );
 
   if( conditional ) {
-    u8 condCode = ( instr.binary >> 3 ) & 0b11;
-    u8 Zmask = 0x80;
-    u8 Cmask = 0x10;
-
-    bool isZ = (regs.F & Zmask) > 0;
-    bool isC = (regs.F & Cmask) > 0;
-    bool doJump = false;
-
-    // condCode: 0b00 = NZ, 0b10 = NC, 0b01 = Z, 0b11 = C
-    switch (condCode) {
-    case 0:
-      doJump = !isZ;
-      break;
-    case 1:
-      doJump = isZ;
-      break;
-    case 2:
-      doJump = !isC;
-      break;
-    case 3:
-      doJump = isC;
-      break;
-    }
+    bool doJump = checkCondCode( ( instr.binary >> 3 ) & 0b11 );
 
     if( doJump ) {
       regs.PC += offset;

@@ -203,6 +203,8 @@ private:
   void push( u16 );
   u16 pop();
 
+  bool checkCondCode( u8 );
+
   InstDetails instrs[ 512 ] {
 #include "../src/_insr_details.hh"
   };

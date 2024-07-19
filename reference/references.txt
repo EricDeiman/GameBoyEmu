@@ -23,6 +23,9 @@ http://www.thealmightyguru.com/Wiki/images/5/50/Game_Boy_-_Complete_Technical_Re
 https://gb-archive.github.io/salvage/decoding_gbz80_opcodes/Decoding%20Gamboy%20Z80%20Opcodes.html
   another way of decoding op codes
 
+https://cplusplus.com/forum/beginner/75750/
+  type on writing an io manipulator that takes arguments
+
 DMG_ROM.bin  claims to be original GameBoy startup ROM built into the device
 
 The Game Boy CPU is clocked at 4.194303 MHz

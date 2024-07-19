@@ -25,12 +25,12 @@ CPU::CPU() {
 }
 
 void
-CPU::initialize( Bus* bus ) {
+CPU::initialize( Bus *bus ) {
   this->bus = bus;
 }
 
 std::string
-CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
+CPU::debugSummary( const InstDetails &instr, u8 parm1, u8 parm2 ) {
   u16 data16 = ( parm2 << 8 ) | parm1;
   char formattedSignedData8[ 32 ];
   char formattedData8[ 32 ];
@@ -117,8 +117,7 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       commandLine >> std::hex >> addr;
       breakpoints[ addr ] =  bus->read( addr );
       bus->write( addr, debugOpcode );
-      std::cout << "breakpoint set at address " << std::hex << std::setw( 4 ) <<
-        std::setfill( '0' ) << addr << std::endl;
+      std::cout << "breakpoint set at address " << setHex( 4 ) << addr << std::endl;
     }
     else if( command == "continue" || command == "c" ) {
       if( breakpoints.size() > 0 ) {
@@ -542,8 +541,7 @@ CPU::DBG( const InstDetails& instr, u8, u8 ) {
     }
   }
 
-  std::cout << "Hit breakpoint at " << std::hex << std::setw( 4 ) << std::setfill( '0' ) <<
-    addrCurrentInstr << std::endl;
+  std::cout << "Hit breakpoint at " << setHex( 4 ) << addrCurrentInstr << std::endl;
   debug( realInstr, args[ 0 ], args[ 1 ] );
 
   return( this->*realInstr.impl )( realInstr, args[ 0 ], args[ 1 ] );

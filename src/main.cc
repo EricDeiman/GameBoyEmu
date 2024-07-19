@@ -108,8 +108,7 @@ main( int argc, char** argv ) {
   }
   catch( std::runtime_error& ex ) {
     std::stringstream ss;
-    ss << ex.what() << ", PC = 0x" << std::hex << std::setfill( '0' ) <<  std::setw( 4 ) <<
-      board.getCpu().addrCurrentInstr;
+    ss << ex.what() << ", PC = 0x" << setHex( 4 ) << board.getCpu().addrCurrentInstr;
     ss << ", On tick " << std::dec << board.getCpu().ticks;
 
     log.Write( Log::error, ss.str() );

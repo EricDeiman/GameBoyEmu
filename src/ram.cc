@@ -195,16 +195,14 @@ RAM::hexDump( u16 start, u16 count ){
 
   for( unsigned i = 0; i < ( count + additional ); i++ ) {
     if( i % 16 == 0 ) {
-      os << std::hex << std::setfill('0') << std::setw(4)
-                << i + startAddress << ": ";
+      os << setHex( 4 ) << i + startAddress << ": ";
     }
 
     if( i < additional ) {
       os << "  ";
     }
     else {
-      os << std::hex << std::setfill('0') << std::setw(2)
-         << ( read8( i + startAddress ) & 0xff);
+      os << setHex( 2 ) << ( read8( i + startAddress ) & 0xff);
     }
 
     if( i % 8 == 7 ) {

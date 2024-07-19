@@ -46,7 +46,7 @@ CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   outline = std::regex_replace( outline, std::regex( "d16" ), formattedData16 );
   outline = std::regex_replace( outline, std::regex( "a8" ), formattedData8 );
   outline = std::regex_replace( outline, std::regex( "a16" ), formattedData16 );
-  outline = std::regex_replace( outline, std::regex( "r16" ), formattedSignedData8);
+  outline = std::regex_replace( outline, std::regex( "r8" ), formattedSignedData8);
 
   char buffer[ 1024 ] = { 0 };
 
@@ -268,7 +268,12 @@ u8
 CPU::LDH( const InstDetails& instr, u8 parm1, u8 ) {
   u16 addr = 0xff00 | ( parm1 & 0xff );
 
-  bus->write( addr, regs.A );
+  if( ( instr.binary & 0b0001'0000 ) == 0 ) {
+    bus->write(addr, regs.A);
+  }
+  else {
+    regs.A = bus->read( addr );
+  }
 
   return instr.cycles1;
 }
@@ -398,7 +403,45 @@ CPU::JR( const InstDetails& instr, u8 parm1, u8 ) {
   auto offset = static_cast< std::int8_t >( parm1 );
 
   if( conditional ) {
-    throw std::runtime_error( "Conditional relative jump not implemented yet" );
+    u8 condCode = ( instr.binary >> 3 ) & 0b11;
+    u8 Zmask = 0x80;
+    u8 Cmask = 0x10;
+
+    bool isZ = (regs.F & Zmask) > 0;
+    bool isC = (regs.F & Cmask) > 0;
+    bool doJump = false;
+
+    // condCode: 0b00 = NZ, 0b10 = NC, 0b01 = Z, 0b11 = C
+    switch (condCode) {
+    case 0:
+      if( !isZ ) {
+        doJump = true;
+      }
+      break;
+    case 1:
+      if( isZ ) {
+        doJump = true;
+      }
+      break;
+    case 2:
+      if( !isC ) {
+        doJump = true;
+      }
+      break;
+    case 3:
+      if( isC ) {
+        doJump = true;
+      }
+      break;
+    }
+
+    if( doJump ) {
+      regs.PC += offset;
+      return instr.cycles1;
+    }
+    else {
+      return instr.cycles2;
+    }
   }
   else {
     regs.PC += offset;
@@ -455,6 +498,33 @@ CPU::INC( const InstDetails& instr, u8, u8 ) {
 
   return instr.cycles1;
 }
+
+u8
+CPU::OR(const InstDetails& instr, u8 parm1, u8) {
+  if( ( instr.binary & 0b1011'0000 ) == 0b1011'0000 ) {
+    // OR the A register with another register and store the result in A
+    u8 registerIndex = instr.binary & 0b0111;
+    if( pr8[ registerIndex ] != &Registers::F ) {
+      regs.A |= this->regs.*pr8[ registerIndex ];
+    }
+    else {
+      // This is really OR (HL)
+      regs.A |= bus->read( regs.HL );
+    }
+  }
+  else {
+    regs.A |= parm1;
+  }
+
+  regs.F = 0;
+
+  if( regs.A == 0 ) {
+    regs.F &= 0b1000'0000;
+  }
+
+  return instr.cycles1;
+}
+
 u8
 CPU::ADC( const InstDetails &instr, u8 parm1, u8 parm2 ) {
   u8 adc_a_r8 = 0b1000'1000;

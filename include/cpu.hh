@@ -118,7 +118,7 @@ public:
   u8 LD( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LD not implemented" ); }
   u8 LDH( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LDH not implemented" ); }
   u8 NOP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "NOP not implemented" ); }
-  u8 OR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "OR not implemented" ); }
+  u8 OR( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "OR not implemented" ); }
   u8 POP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "POP not implemented" ); }
   u8 PREFIX( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PREFIX not implemented" ); }
   u8 PUSH( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "PUSH not implemented" ); }

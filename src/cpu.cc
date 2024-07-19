@@ -103,6 +103,7 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     commandLine >> command;
 
     if( command == "step" || command == "s" ) {
+      singleStepMode = true;
       return;
     }
     else if( command == "dump" || command == "d" ) {
@@ -111,8 +112,26 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       auto mem = bus->hexDump( addr, 3 * 16 );
       std::cout << mem;
     }
+    else if( command == "break" || command == "b" ) {
+      u16 addr;
+      commandLine >> std::hex >> addr;
+      breakpoints[ addr ] =  bus->read( addr );
+      bus->write( addr, debugOpcode );
+      std::cout << "breakpoint set at address " << std::hex << std::setw( 4 ) <<
+        std::setfill( '0' ) << addr << std::endl;
+    }
+    else if( command == "continue" || command == "c" ) {
+      if( breakpoints.size() > 0 ) {
+        singleStepMode = false;
+        return;
+      }
+      else {
+        std::cout << "Need at least one breakpoint to continue" << std::endl;
+      }
+    }
     else {
-      std::cout << "Available commands: (s)tep, (h)elp, (d)ump <address>" << std::endl;
+      std::cout << "Available commands: (s)tep, (h)elp, (d)ump <address>, "
+                << "(b)reak <address>, (c)ontinue" << std::endl;
     }
   }
 }
@@ -190,7 +209,7 @@ CPU::JP( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
     if ( doJump ) {
       push(regs.PC);
-      regs.PC = ( parm2 << 8 ) | parm1;
+      regs.PC = ( ( u16 )parm2 << 8 ) | parm1;
       return instr.cycles1;
     }
     else {
@@ -510,24 +529,45 @@ CPU::OR(const InstDetails& instr, u8 parm1, u8) {
 }
 
 u8
-CPU::ADC( const InstDetails &instr, u8 parm1, u8 parm2 ) {
-  u8 adc_a_r8 = 0b1000'1000;
-  u8 Areg_idx = 0b111;
+CPU::DBG( const InstDetails& instr, u8, u8 ) {
+  // Set things up for the call to the debug display
+  InstDetails realInstr = instrs[ breakpoints[ addrCurrentInstr ] ];
 
-  u8 Registers::*dest_reg = pr8[ Areg_idx ];
+  u8 args[ 2 ] = { 0 };
 
-  u8 src_data;
-  u8 dest_data = regs.*dest_reg;
-
-  if( ( static_cast< u8 >( instr.binary ) & adc_a_r8 ) == adc_a_r8 ) {
-    // ADC A, r8
-    u8 Registers::*src_reg = pr8[ static_cast< u8 >( instr.binary ) & 0b111 ];
-    src_data = regs.*src_reg;
-  }
-  else {
-    // ADC A, d8
-    // src_data = parm1;
+  // Read arguments, if any
+  if( realInstr.bytes > 1 ) {
+    for (auto i = 0; i < realInstr.bytes - 1; i++) {
+      args[i] = bus->read(regs.PC++);
+    }
   }
 
-  return instr.cycles1;
+  std::cout << "Hit breakpoint at " << std::hex << std::setw( 4 ) << std::setfill( '0' ) <<
+    addrCurrentInstr << std::endl;
+  debug( realInstr, args[ 0 ], args[ 1 ] );
+
+  return( this->*realInstr.impl )( realInstr, args[ 0 ], args[ 1 ] );
 }
+
+// u8
+// CPU::ADC( const InstDetails &instr, u8 parm1, u8 parm2 ) {
+//   u8 adc_a_r8 = 0b1000'1000;
+//   u8 Areg_idx = 0b111;
+
+//   u8 Registers::*dest_reg = pr8[ Areg_idx ];
+
+//   u8 src_data;
+//   u8 dest_data = regs.*dest_reg;
+
+//   if( ( static_cast< u8 >( instr.binary ) & adc_a_r8 ) == adc_a_r8 ) {
+//     // ADC A, r8
+//     u8 Registers::*src_reg = pr8[ static_cast< u8 >( instr.binary ) & 0b111 ];
+//     src_data = regs.*src_reg;
+//   }
+//   else {
+//     // ADC A, d8
+//     // src_data = parm1;
+//   }
+
+//   return instr.cycles1;
+// }

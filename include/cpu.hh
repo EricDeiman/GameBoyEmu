@@ -97,7 +97,7 @@ public:
     char C;      // carry flag
   };
 
-  u8 ADC( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "ADC not implemented" ); }
+  u8 ADC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ADC not implemented" ); }
   u8 ADD( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ADD not implemented" ); }
   u8 AND( const InstDetails&, u8, u8 ) { throw std::runtime_error( "AND not implemented" ); }
   u8 BIT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "BIT not implemented" ); }
@@ -106,7 +106,7 @@ public:
   u8 CP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CP not implemented" ); }
   u8 CPL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CPL not implemented" ); }
   u8 DAA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "DAA not implemented" ); }
-  u8 DBG( const InstDetails&, u8, u8 ) { throw std::runtime_error( "DBG not implemented" ); }
+  u8 DBG( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "DBG not implemented" ); }
   u8 DEC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "DEC not implemented" ); }
   u8 DI( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "DI not implemented" ); }
   u8 EI( const InstDetails&, u8, u8 ) { throw std::runtime_error( "EI not implemented" ); }
@@ -185,6 +185,7 @@ private:
 
 private:
   Bus* bus;
+  u8 debugOpcode = 0xd3;
 
   dictionary< Interrupt, u16 > interruptHandler {
     { Interrupt::VBlank, 0x40 },
@@ -204,6 +205,8 @@ private:
   u16 pop();
 
   bool checkCondCode( u8 );
+
+  dictionary< u16, u8 > breakpoints;
 
   InstDetails instrs[ 512 ] {
 #include "../src/_insr_details.hh"

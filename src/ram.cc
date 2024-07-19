@@ -44,7 +44,7 @@ logUnusableRAMaccess( std::string method, u16 address ) {
   sprintf( buffer, "Attempt to %s from unusable RAM address %04x", method.c_str(),
            address );
   _log->Write( Log::warn, buffer );
-  
+
 }
 
 void
@@ -68,7 +68,7 @@ RAM::write( u16 address, u8 data ) {
   }
 
   _ram[ correctForEchoRAM( address ) ] = data;
-} 
+}
 
 dictionary< int, std::string >CartType = {
   { 0x00, "ROM ONLY" },

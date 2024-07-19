@@ -211,16 +211,6 @@ private:
 
   std::ostream& formatHex( std::ostream&, int );
 
-  // from https://cplusplus.com/forum/beginner/75750/
-  struct setHex {
-    explicit constexpr setHex( u8 width ) : width( width ) {}
-    u8 width;
-
-    inline friend std::ostream& operator<<( std::ostream& os, const setHex& manip ) {
-      return os << std::hex << std::setw( manip.width ) << std::setfill( '0' );
-    }
-  };
-
   InstDetails instrs[ 512 ] {
 #include "../src/_insr_details.hh"
   };

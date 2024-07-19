@@ -128,9 +128,27 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
         std::cout << "Need at least one breakpoint to continue" << std::endl;
       }
     }
+    else if( command == "poke" || command == "p" ) {
+      u16 addr;
+      commandLine >> std::hex >> addr;
+      if( !commandLine.eof() ) {
+        int dataInput;
+        commandLine >> std::hex >> dataInput;
+
+        u8 data = dataInput & 0xff;
+
+        std::cout << "The old data at address " << setHex( 4 ) << addr <<
+          " is " << setHex( 2 ) << ( bus->read( addr ) & 0xff ) << std::endl;
+
+        bus->write( addr, data );
+      }
+      else {
+        std::cout << "Expected 2 arguments to poke" << std::endl;
+      }
+    }
     else {
       std::cout << "Available commands: (s)tep, (h)elp, (d)ump <address>, "
-                << "(b)reak <address>, (c)ontinue" << std::endl;
+                << "(b)reak <address>, (c)ontinue, (p)oke <address> <value>" << std::endl;
     }
   }
 }

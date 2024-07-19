@@ -158,7 +158,50 @@ CPU::NOP( const InstDetails &instr, u8, u8 ) {
 u8
 CPU::JP( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   // Remember, the SM83, along with the 8080 and Z80 are little endian
-  regs.PC = ( (u16)parm2 << 8 ) | ( (u16)parm1 & 0xff );
+
+  switch( instr.binary & 0b11 ) {
+  case 1:  // JP (HL)
+    regs.PC = bus->read( regs.HL );
+    break;
+  case 2: {
+    u8 Zmask = 0x80;
+    u8 Cmask = 0x10;
+
+    bool isZ = (regs.F & Zmask) > 0;
+    bool isC = (regs.F & Cmask) > 0;
+
+    bool doJump = false;
+    u8 conditionCode = ( instr.binary >> 3 ) & 0b11;
+
+    switch (conditionCode) {
+    case 0:
+      doJump = !isZ;
+      break;
+    case 1:
+      doJump = isZ;
+      break;
+    case 2:
+      doJump = !isC;
+      break;
+    case 3:
+      doJump = isC;
+      break;
+    }
+
+    if ( doJump ) {
+      push(regs.PC);
+      regs.PC = ( parm2 << 8 ) | parm1;
+      return instr.cycles1;
+    }
+    else {
+      return instr.cycles2;
+    }
+  }
+    break;
+  case 3:  // Unconditional jump to address
+    regs.PC = ((u16)parm2 << 8) | ((u16)parm1 & 0xff);
+    break;
+  }
 
   return instr.cycles1;
 }
@@ -303,24 +346,16 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
     switch( conditionCode ){
     case 0:
-      if( !isZ ) {
-        doCall = true;
-      }
+      doCall = !isZ;
       break;
     case 1:
-      if( isZ ) {
-        doCall = true;
-      }
+      doCall = isZ;
       break;
     case 2:
-      if( !isC ) {
-        doCall = true;
-      }
+      doCall = !isC;
       break;
     case 3:
-      if( isC ) {
-        doCall = true;
-      }
+      doCall = isC;
       break;
     }
 
@@ -414,24 +449,16 @@ CPU::JR( const InstDetails& instr, u8 parm1, u8 ) {
     // condCode: 0b00 = NZ, 0b10 = NC, 0b01 = Z, 0b11 = C
     switch (condCode) {
     case 0:
-      if( !isZ ) {
-        doJump = true;
-      }
+      doJump = !isZ;
       break;
     case 1:
-      if( isZ ) {
-        doJump = true;
-      }
+      doJump = isZ;
       break;
     case 2:
-      if( !isC ) {
-        doJump = true;
-      }
+      doJump = !isC;
       break;
     case 3:
-      if( isC ) {
-        doJump = true;
-      }
+      doJump = isC;
       break;
     }
 

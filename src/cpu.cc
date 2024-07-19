@@ -32,11 +32,13 @@ CPU::initialize( Bus* bus ) {
 std::string
 CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   u16 data16 = ( parm2 << 8 ) | parm1;
+  char formattedSignedData8[ 32 ];
   char formattedData8[ 32 ];
   char formattedData16[ 32 ];
 
   sprintf( formattedData8, "%02x", parm1 );
-  sprintf( formattedData16, "%04x", data16 );
+  sprintf( formattedSignedData8, "%d", parm1 );
+  sprintf(formattedData16, "%04x", data16);
 
   std::string outline{ instr.desc };
 
@@ -44,6 +46,7 @@ CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   outline = std::regex_replace( outline, std::regex( "d16" ), formattedData16 );
   outline = std::regex_replace( outline, std::regex( "a8" ), formattedData8 );
   outline = std::regex_replace( outline, std::regex( "a16" ), formattedData16 );
+  outline = std::regex_replace( outline, std::regex( "r16" ), formattedSignedData8);
 
   char buffer[ 1024 ] = { 0 };
 
@@ -55,12 +58,14 @@ CPU::debugSummary( const InstDetails& instr, u8 parm1, u8 parm2 ) {
   auto flags = regs.F;
 
   // display the regisgers
-  int offset = sprintf( buffer, "AF:%04x BC:%04x DE:%04x HL:%04x PC:%04x SP:%04x %s%s%s%s\n",
+  int offset = sprintf( buffer, "AF:%04x BC:%04x DE:%04x HL:%04x PC:%04x SP:%04x %s%s%s%s  %lu ticks\n",
            regs.AF, regs.BC, regs.DE, regs.HL, regs.PC, regs.SP,
            ( (flags & Zmask) > 0 ? "Z" : "z" ),
            ( (flags & Nmask) > 0 ? "N" : "n" ),
            ( (flags & Hmask) > 0 ? "H" : "h" ),
-           ( (flags & Cmask) > 0 ? "C" : "c" ) );
+           ( (flags & Cmask) > 0 ? "C" : "c" ),
+           ticks
+           );
 
   offset += sprintf( buffer + offset, "0x%04x:  %02x", addrCurrentInstr, instr.binary );
 
@@ -110,8 +115,6 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       std::cout << "Available commands: (s)tep, (h)elp, (d)ump <address>" << std::endl;
     }
   }
-
-
 }
 
 void
@@ -137,12 +140,12 @@ CPU::_clock() {
     }
 
     if( singleStepMode ) {
-      debug( ins_decode, params[ 0 ], params[ 1 ] );      
+      debug( ins_decode, params[ 0 ], params[ 1 ] );
     }
 
     auto cycleCnt = ( this->*ins_decode.impl )( ins_decode, params[ 0 ], params[ 1 ] );
 
-    waitUntilTicks = ticks + cycleCnt - 1;
+    waitUntilTicks = ticks + cycleCnt;
   }
 
 }
@@ -179,7 +182,7 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     case 0x1: {
       // Load d16 into a 16-bit register.
       int reg = ( instr.binary >> 4 & 0x3 );
-      auto dest = p16[ reg ];
+      auto dest = pr16_1[ reg ];
       u16 data = ( parm2 << 8 ) | parm1;
 
       this->regs.*dest = data;
@@ -191,8 +194,24 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     case 0x8:
       throw std::runtime_error( "Block zero LD instruction 0x8 not implemented" );
       break;  // block zero opcode 8
-    case 0xa:
-      throw std::runtime_error( "Block zero LD instruction 0xa not implemented" );
+    case 0xa: {
+      // Load register A from memory pointed to by 16-bit register
+      u8 sourceReg = (instr.binary >> 4) & 0b11;
+      switch( sourceReg ) {
+      case 0x0:  // from register (BC)
+        regs.A = bus->read( regs.BC );
+        break;
+      case 0x1:  // from register (DE)
+        regs.A = bus->read( regs.DE );
+        break;
+      case 0x2:  // from register (HL+), increment HL after read
+        regs.A = bus->read( regs.HL++ );
+        break;
+      case 0x3:  // from register (HL-), decrement HL after read
+        regs.A = bus->read( regs.HL-- );
+        break;
+      }
+    }
       break;  // block zero opcode a
     case 0xe: {
       // Load  d8 into 8-bit register
@@ -302,7 +321,6 @@ CPU::CALL( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
     if( doCall ) {
       push( regs.PC );
-      
       regs.PC = callAddress;
 
       return instr.cycles1;
@@ -404,6 +422,39 @@ CPU::RET( const InstDetails& instr, u8, u8 ) {
   return 0;
 }
 
+u8
+CPU::PUSH( const InstDetails& instr, u8, u8 ) {
+  // source register is in bits 4 and 5
+  u8 registerIndex = ( instr.binary >> 4 ) & 0x3;
+  push( this->regs.*( pr16_2[ registerIndex ] ) );
+
+  return instr.cycles1;
+}
+
+u8
+CPU::POP( const InstDetails& instr, u8, u8 ) {
+  u8 destinationIndex = ( instr.binary >> 4 ) & 0x3;
+  this->regs.*( pr16_2[ destinationIndex ] ) = pop();
+
+  return instr.cycles1;
+}
+
+u8
+CPU::INC( const InstDetails& instr, u8, u8 ) {
+  // is it a 16-bit register or 8-bit register to increment?
+  bool is16bit = ( instr.binary & 0x3 ) == 3;
+
+  if( is16bit ) {
+    u8 registerIndex = ( instr.binary >> 4 ) & 0b11;
+    this->regs.*(pr16_1[registerIndex]) = (this->regs.*(pr16_1[registerIndex]) + 1) & 0xffff;
+  }
+  else {
+    u8 registerIndex = ( instr.binary >> 3 ) & 0b111;
+    this->regs.*(pr8[ registerIndex]) = (this->regs.*(pr8[ registerIndex]) + 1) & 0xff;
+  }
+
+  return instr.cycles1;
+}
 u8
 CPU::ADC( const InstDetails &instr, u8 parm1, u8 parm2 ) {
   u8 adc_a_r8 = 0b1000'1000;

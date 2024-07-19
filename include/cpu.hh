@@ -18,8 +18,8 @@ public:
   void _clock();
 
   u16 addrCurrentInstr = 0;
-  uint64_t ticks = 1;
-  uint64_t waitUntilTicks = 1;
+  uint64_t ticks = 0;
+  uint64_t waitUntilTicks = 0;
   bool interruptsEnabled = false;
   bool singleStepMode = false;
 
@@ -112,16 +112,16 @@ public:
   u8 EI( const InstDetails&, u8, u8 ) { throw std::runtime_error( "EI not implemented" ); }
   u8 HALT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "HALT not implemented" ); }
   u8 ILL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ILL not implemented" ); }
-  u8 INC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "INC not implemented" ); }
+  u8 INC( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "INC not implemented" ); }
   u8 JP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JP not implemented" ); }
   u8 JR( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JR not implemented" ); }
   u8 LD( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LD not implemented" ); }
   u8 LDH( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LDH not implemented" ); }
   u8 NOP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "NOP not implemented" ); }
   u8 OR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "OR not implemented" ); }
-  u8 POP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "POP not implemented" ); }
+  u8 POP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "POP not implemented" ); }
   u8 PREFIX( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PREFIX not implemented" ); }
-  u8 PUSH( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PUSH not implemented" ); }
+  u8 PUSH( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "PUSH not implemented" ); }
   u8 RES( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RES not implemented" ); }
   u8 RET( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "RET not implemented" ); }
   u8 RETI( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RETI not implemented" ); }
@@ -162,11 +162,18 @@ private:
     &Registers::A,
   };
 
-  u16 Registers::*p16[ 4 ] {
+  u16 Registers::*pr16_1[ 4 ] {
     &Registers::BC,
     &Registers::DE,
     &Registers::HL,
-    &Registers::SP,  // &Registers::AF,  // changed for the LD insruction
+    &Registers::SP
+  };
+
+  u16 Registers::*pr16_2[ 4 ]{
+      &Registers::BC,
+      &Registers::DE,
+      &Registers::HL,
+      &Registers::AF
   };
 
   dictionary< std::string, int > flagOffsets {

@@ -32,6 +32,9 @@ Timer::_clock() {
                       ram->read8( Bus::IOAddress::TMA ) );
           cpu->triggerInterrupt( CPU::Interrupt::Timer );
         }
+        else {
+          ram->write( Bus::IOAddress::TIMA, ram->read8( Bus::IOAddress::TIMA ) + 1 );
+        }
       }
     }
   }

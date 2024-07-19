@@ -117,5 +117,9 @@ Bus::write(u16 address, u8 data ){
   else {
     ram->write( address, data );
   }
+}
 
+Timer *
+Bus::getTimer() {
+  return timer;
 }

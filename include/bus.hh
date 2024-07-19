@@ -110,6 +110,8 @@ public:
 
   void doIO( u16, u8 );
 
+  Timer* getTimer();
+
 private:
   CPU* cpu;
   RAM* ram;

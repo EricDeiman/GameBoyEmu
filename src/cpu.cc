@@ -1,3 +1,4 @@
+
 #include <algorithm>
 #include <cstdio>
 #include <iomanip>
@@ -17,9 +18,13 @@ CPU::CPU() {
   auto keys = conf->GetKeys();
 
   auto hasStartDebug = std::find( keys.begin(), keys.end(), "StartInDebug" );
-
   if( hasStartDebug != keys.end() ) {
-    singleStepMode = conf->GetValue( "StartInDebug" ) == "true";
+    singleStepMode = conf->GetValue( *hasStartDebug ) == "true";
+  }
+
+  auto hasTrace = std::find( keys.begin(), keys.end(), "TraceLog");
+  if( hasTrace != keys.end() ) {
+    trace.open( conf->GetValue( *hasTrace ) );
   }
 
   regs.PC = 0x100;
@@ -37,9 +42,15 @@ CPU::debugSummary( const InstDetails &instr, u8 parm1, u8 parm2 ) {
   char formattedSignedData8[ 32 ];
   char formattedData8[ 32 ];
   char formattedData16[ 32 ];
+  auto signedData = static_cast< std::int8_t >( parm1 );
+  bool negativeData = signedData < 0;
+
+  if( negativeData ) {
+    signedData = -signedData;
+  }
 
   sprintf( formattedData8, "%02x", parm1 );
-  sprintf( formattedSignedData8, "%d", parm1 );
+  sprintf( formattedSignedData8, "%s%x", negativeData ? "-" : "", signedData );
   sprintf(formattedData16, "%04x", data16);
 
   std::string outline{ instr.desc };
@@ -52,20 +63,15 @@ CPU::debugSummary( const InstDetails &instr, u8 parm1, u8 parm2 ) {
 
   char buffer[ 1024 ] = { 0 };
 
-  auto Zmask = 0b1000'0000;
-  auto Nmask = 0b0100'0000;
-  auto Hmask = 0b0010'0000;
-  auto Cmask = 0b0001'0000;
-
   auto flags = regs.F;
 
   // display the regisgers
   int offset = sprintf( buffer, "AF:%04x BC:%04x DE:%04x HL:%04x PC:%04x SP:%04x %s%s%s%s  %lu ticks\n",
            regs.AF, regs.BC, regs.DE, regs.HL, regs.PC, regs.SP,
-           ( (flags & Zmask) > 0 ? "Z" : "z" ),
-           ( (flags & Nmask) > 0 ? "N" : "n" ),
-           ( (flags & Hmask) > 0 ? "H" : "h" ),
-           ( (flags & Cmask) > 0 ? "C" : "c" ),
+           ( ( flags & Zmask ) > 0 ? "Z" : "z" ),
+           ( ( flags & Nmask ) > 0 ? "N" : "n" ),
+           ( ( flags & Hmask ) > 0 ? "H" : "h" ),
+           ( ( flags & Cmask ) > 0 ? "C" : "c" ),
            ticks
            );
 
@@ -83,8 +89,6 @@ CPU::debugSummary( const InstDetails &instr, u8 parm1, u8 parm2 ) {
 
   offset += sprintf( buffer + offset, "  %s", outline.c_str() );
 
-
-  //_log->Write( Log::debug, buffer );
   return buffer;
 }
 
@@ -229,6 +233,10 @@ CPU::_clock() {
 
     decode();
 
+    if( trace.is_open() ) {
+      trace << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
+    }
+
     if( singleStepMode ) {
       debug( ins_decode, params[ 0 ], params[ 1 ] );
     }
@@ -247,8 +255,6 @@ CPU::NOP( const InstDetails &instr, u8, u8 ) {
 
 bool
 CPU::checkCondCode( u8 condCode ) {
-  u8 Zmask = 0x80;
-  u8 Cmask = 0x10;
 
   bool isZ = (regs.F & Zmask) > 0;
   bool isC = (regs.F & Cmask) > 0;
@@ -593,7 +599,7 @@ CPU::OR(const InstDetails& instr, u8 parm1, u8) {
   regs.F = 0;
 
   if( regs.A == 0 ) {
-    regs.F &= 0b1000'0000;
+    regs.F |= 0b1000'0000;
   }
 
   return instr.cycles1;

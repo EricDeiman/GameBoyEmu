@@ -2,9 +2,10 @@
 #include "../include/board.hh"
 
 Board::Board() {
-  bus.initialize( &cpu, &ram, &timer );
+  bus.initialize( &cpu, &ram, &timer, &serial );
   cpu.initialize( &bus );
   timer.initialize( &cpu, &ram, &bus );
+  serial.initialize( &bus );
 }
 
 u8

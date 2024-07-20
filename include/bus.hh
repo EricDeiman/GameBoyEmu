@@ -8,6 +8,7 @@
 class CPU;
 class RAM;
 class Timer;
+struct Serial;
 
 // Address	Name	  Description	            R/W
 // $FF00	  P1/JOYP	Joypad	                Mixed
@@ -101,7 +102,7 @@ public:
     WX     = 0xFF4B,
   };
 
-  void initialize( CPU*, RAM*, Timer* );
+  void initialize( CPU*, RAM*, Timer*, Serial* );
 
   u8 read( u16 );
   void write( u16, u8 );
@@ -116,6 +117,7 @@ private:
   CPU* cpu;
   RAM* ram;
   Timer* timer;
+  Serial* serial;
 };
 
 #endif

@@ -3,16 +3,18 @@
 
 #include <memory>
 
-#include "bus.hh"
 #include "common.hh"
+
+#include "bus.hh"
 #include "cpu.hh"
 #include "ram.hh"
+#include "serial.hh"
 #include "timer.hh"
 
 class Board {
 public:
   Board();
-  
+
   u8 read8( u16 );
   void _clock();
 
@@ -23,6 +25,7 @@ private:
   Bus bus;  // Bus needs to know about all the other components
   CPU cpu;  // CPU needs to know abou the bus only
   Timer timer;  // Timer needs to know about RAM and CPU
+  Serial serial;
 };
 
 #endif

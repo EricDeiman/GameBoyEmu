@@ -2,6 +2,7 @@
 #define __cpu_hh_
 
 #include <cstddef>
+#include <fstream>
 #include <iomanip>
 #include <memory>
 #include <sstream>
@@ -189,6 +190,7 @@ private:
 private:
   Bus* bus;
   u8 debugOpcode = 0xd3;
+  std::ofstream trace;
 
   dictionary< Interrupt, u16 > interruptHandler {
     { Interrupt::VBlank, 0x40 },

@@ -1,6 +1,7 @@
 
 #include "../include/bus.hh"
 #include "../include/ram.hh"
+#include "../include/serial.hh"
 #include "../include/timer.hh"
 
 // Address	Name	  Description	            R/W
@@ -48,11 +49,11 @@
 // $FF4B	  WX	    Window X position plus 7	R/W	
 
 void
-Bus::initialize( CPU* cpu, RAM* ram, Timer* timer ) {
+Bus::initialize( CPU* cpu, RAM* ram, Timer* timer, Serial* serial ) {
   this->cpu = cpu;
   this->ram = ram;
   this->timer = timer;
-
+  this->serial = serial;
 }
 
 void
@@ -71,9 +72,20 @@ Bus::doIO( u16 address, u8 data ) {
       break;
     case TAC:
       timer->setTAC( data );
-      ram->write( address, data);
+      ram->write( address, data );
       break;
     case IF:
+      ram->write( address, data );
+      break;
+    case SB:
+      ram->write( address, data );
+      break;
+    case SC:
+      ram->write( address, data );
+      serial->write();
+      break;
+    case LY:
+      // TODO: Fix me, should this work?  For debugging cpu_instrs.gb
       ram->write( address, data );
       break;
     default: {

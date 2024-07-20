@@ -26,6 +26,9 @@ https://gb-archive.github.io/salvage/decoding_gbz80_opcodes/Decoding%20Gamboy%20
 https://cplusplus.com/forum/beginner/75750/
   type on writing an io manipulator that takes arguments
 
+https://stackoverflow.com/questions/41024409/algorithm-for-adding-two-integers-based-on-the-use-of-standard-logical-operation
+  how to use logic operations to calculate carry flag
+
 DMG_ROM.bin  claims to be original GameBoy startup ROM built into the device
 
 The Game Boy CPU is clocked at 4.194303 MHz

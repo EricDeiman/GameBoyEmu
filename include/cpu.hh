@@ -4,9 +4,11 @@
 #include <cstddef>
 #include <iomanip>
 #include <memory>
+#include <sstream>
 #include <string>
 
 #include "common.hh"
+#include "dictionary.hh"
 
 class Bus;
 
@@ -104,7 +106,7 @@ public:
   u8 BIT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "BIT not implemented" ); }
   u8 CALL( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "CALL not implemented" ); }
   u8 CCF( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CCF not implemented" ); }
-  u8 CP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CP not implemented" ); }
+  u8 CP( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "CP not implemented" ); }
   u8 CPL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CPL not implemented" ); }
   u8 DAA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "DAA not implemented" ); }
   u8 DBG( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "DBG not implemented" ); }
@@ -211,7 +213,36 @@ private:
 
   std::ostream& formatHex( std::ostream&, int );
 
-  InstDetails instrs[ 512 ] {
+  void add( int, int, u8& );
+
+  int Zmask = 0b1000'0000;
+  int Nmask = 0b0100'0000;
+  int Hmask = 0b0010'0000;
+  int Cmask = 0b0001'0000;
+
+  bool dbgStep( std::stringstream& );
+  bool dbgDump( std::stringstream& );
+  bool dbgBreak( std::stringstream& );
+  bool dbgContinue( std::stringstream& );
+  bool dbgPoke( std::stringstream& );
+  bool dbgSetPC( std::stringstream& );
+
+  dictionary< std::string, bool ( CPU::* )( std::stringstream& ) >
+  dbgHandlers = {
+    { "step",     &CPU::dbgStep },
+    { "s",        &CPU::dbgStep },
+    { "dump",     &CPU::dbgDump },
+    { "d",        &CPU::dbgDump },
+    { "break",    &CPU::dbgBreak },
+    { "b",        &CPU::dbgBreak },
+    { "continue", &CPU::dbgContinue },
+    { "c",        &CPU::dbgContinue },
+    { "poke",     &CPU::dbgPoke },
+    { "p",        &CPU::dbgPoke },
+    { "setPC",    &CPU::dbgSetPC }
+  };
+
+  InstDetails instrs[512]{
 #include "../src/_insr_details.hh"
   };
 };

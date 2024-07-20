@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <cstdio>
 #include <iomanip>
 #include <ios>
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 
 #include "../include/cpu.hh"
@@ -102,55 +104,117 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
     commandLine >> command;
 
-    if( command == "step" || command == "s" ) {
-      singleStepMode = true;
-      return;
-    }
-    else if( command == "dump" || command == "d" ) {
-      u16 addr;
-      commandLine >> std::hex >> addr;
-      auto mem = bus->hexDump( addr, 3 * 16 );
-      std::cout << mem;
-    }
-    else if( command == "break" || command == "b" ) {
-      u16 addr;
-      commandLine >> std::hex >> addr;
-      breakpoints[ addr ] =  bus->read( addr );
-      bus->write( addr, debugOpcode );
-      std::cout << "breakpoint set at address " << setHex( 4 ) << addr << std::endl;
-    }
-    else if( command == "continue" || command == "c" ) {
-      if( breakpoints.size() > 0 ) {
-        singleStepMode = false;
+    auto handle = dbgHandlers.find( command );
+    if( handle != dbgHandlers.end() ) {
+      auto shouldReturn = ( this->*handle->second )( commandLine );
+      if( shouldReturn ) {
         return;
-      }
-      else {
-        std::cout << "Need at least one breakpoint to continue" << std::endl;
-      }
-    }
-    else if( command == "poke" || command == "p" ) {
-      u16 addr;
-      commandLine >> std::hex >> addr;
-      if( !commandLine.eof() ) {
-        int dataInput;
-        commandLine >> std::hex >> dataInput;
-
-        u8 data = dataInput & 0xff;
-
-        std::cout << "The old data at address " << setHex( 4 ) << addr <<
-          " is " << setHex( 2 ) << ( bus->read( addr ) & 0xff ) << std::endl;
-
-        bus->write( addr, data );
-      }
-      else {
-        std::cout << "Expected 2 arguments to poke" << std::endl;
       }
     }
     else {
-      std::cout << "Available commands: (s)tep, (h)elp, (d)ump <address>, "
-                << "(b)reak <address>, (c)ontinue, (p)oke <address> <value>" << std::endl;
+      std::cout << "Unknown command " << command << std::endl;
+
+      std::vector< std::string > keys;
+      for( auto i : dbgHandlers ) {
+        keys.push_back( i.first );
+      }
+      std::sort( keys.begin(), keys.end() );
+
+      std::cout << "Available commands are ";
+
+      for( auto k : keys ) {
+        std::cout << k << " ";
+      }
+
+      std::cout << std::endl;
     }
   }
+}
+
+bool
+CPU::dbgStep( std::stringstream& is ) {
+  singleStepMode = true;
+  return true;
+}
+
+bool
+CPU::dbgDump( std::stringstream& is ) {
+    u16 addr;
+    is >> std::hex >> addr;
+    auto mem = bus->hexDump( addr, 3 * 16 );
+    std::cout << mem;
+
+    return false;
+}
+
+bool
+CPU::dbgBreak( std::stringstream& is ) {
+  u16 addr;
+  is >> std::hex >> addr;
+  breakpoints[ addr ] =  bus->read( addr );
+  bus->write( addr, debugOpcode );
+  std::cout << "breakpoint set at address " << setHex( 4 ) << addr <<
+    std::endl;
+
+  return false;
+}
+
+bool
+CPU::dbgContinue( std::stringstream& is ) {
+    if( breakpoints.size() > 0 ) {
+      singleStepMode = false;
+      return true;
+    }
+    else {
+      std::cout << "Need at least one breakpoint to continue" << std::endl;
+      return false;
+    }
+}
+
+bool
+CPU::dbgPoke( std::stringstream& is ) {
+  u16 addr;
+  is >> std::hex >> addr;
+  if( !is.eof() ) {
+    int dataInput;
+    is >> std::hex >> dataInput;
+
+    u8 data = dataInput & 0xff;
+
+    std::cout << "The old data at address " << setHex( 4 ) << addr <<
+      " is " << setHex( 2 ) << ( bus->read( addr ) & 0xff ) << std::endl;
+
+    bus->write( addr, data );
+  }
+  else {
+    std::cout << "Expected 2 arguments to poke" << std::endl;
+  }
+
+  return false;
+}
+
+bool
+CPU::dbgSetPC( std::stringstream& is ) {
+  u16 addr;
+  is >> std::hex >> addr;
+  regs.PC = addr;
+
+  u8 params[ 2 ]{ 0 };
+  addrCurrentInstr = regs.PC;
+
+  u8 ins = bus->read( regs.PC++ );
+
+  auto ins_decode = instrs[ ins ];
+
+  if( ins_decode.bytes > 1 ) {
+    for( auto i = 0; i < ins_decode.bytes - 1; i++ ) {
+      params[ i ] = bus->read( regs.PC++ );
+    }
+  }
+
+  std::cout << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
+
+  return false;
 }
 
 void
@@ -563,6 +627,56 @@ CPU::DBG( const InstDetails& instr, u8, u8 ) {
   debug( realInstr, args[ 0 ], args[ 1 ] );
 
   return( this->*realInstr.impl )( realInstr, args[ 0 ], args[ 1 ] );
+}
+
+void
+CPU::add( int parm1, int parm2, u8& result ) {
+  int intResult = parm1 + parm2;
+  result = intResult & 0xff;
+
+  bool isZ = result == 0;
+  bool isH = ( parm1 & 0x0f ) + ( parm2 & 0x0f ) > 0x0f;
+  bool isC = static_cast< unsigned >( intResult ) > 0xff;
+
+  regs.F = ( isZ * Zmask ) | ( isH * Hmask ) | ( isC * Cmask );
+}
+
+u8
+CPU::CP( const InstDetails& instr, u8 parm1, u8 )    {
+  u8 result;
+
+  // Which CP op code are we looking at
+  auto block = ( instr.binary >> 6 ) & 0x3;
+
+  switch( block ) {
+  case 2: {
+    // Compare register A with other register
+    auto otherReg = pr8[ instr.binary & 0x7 ];
+    if( otherReg != &Registers::F ) {
+      add( regs.A, -( this->regs.*otherReg ), result );
+    }
+    else {
+      // Compare register A with data in memory location (HL)
+      add( regs.A, -( bus->read( regs.HL ) & 0xff ), result );
+    }
+  }
+    break;
+  case 3:
+    // Compare register A with data
+    add( regs.A, -parm1, result );
+    break;
+  default: {
+    char buffer[ 1024 ] = { 0 };
+    sprintf( buffer, "In CPU::CP op code with invalid op code: 0x%02x, PC = 0x%04x",
+             instr.binary, addrCurrentInstr );
+    throw std::runtime_error( buffer );
+  }
+    break;
+  }
+
+  regs.F |= Nmask;
+
+  return instr.cycles1;
 }
 
 // u8

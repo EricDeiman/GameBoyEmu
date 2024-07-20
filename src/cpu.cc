@@ -199,12 +199,11 @@ CPU::dbgSetPC( std::stringstream& is ) {
   is >> std::hex >> addr;
   regs.PC = addr;
 
-  u8 params[ 2 ]{ 0 };
   addrCurrentInstr = regs.PC;
 
   u8 ins = bus->read( regs.PC++ );
 
-  auto ins_decode = instrs[ ins ];
+  ins_decode = instrs[ ins ];
 
   if( ins_decode.bytes > 1 ) {
     for( auto i = 0; i < ins_decode.bytes - 1; i++ ) {
@@ -224,14 +223,12 @@ CPU::_clock() {
   if( ticks >= waitUntilTicks ) {
     processInterrupts();
 
-    u8 params[2]{ 0 };
-
     // Read the instruction at PC
     addrCurrentInstr = regs.PC;
 
     u8 ins = bus->read( regs.PC++ );
 
-    auto ins_decode = instrs[ ins ];
+    ins_decode = instrs[ ins ];
 
     if( ins_decode.bytes > 1 ) {
       for( auto i = 0; i < ins_decode.bytes - 1; i++ ) {
@@ -612,21 +609,19 @@ CPU::OR(const InstDetails& instr, u8 parm1, u8) {
 u8
 CPU::DBG( const InstDetails& instr, u8, u8 ) {
   // Set things up for the call to the debug display
-  InstDetails realInstr = instrs[ breakpoints[ addrCurrentInstr ] ];
-
-  u8 args[ 2 ] = { 0 };
+  ins_decode = instrs[ breakpoints[ addrCurrentInstr ] ];
 
   // Read arguments, if any
-  if( realInstr.bytes > 1 ) {
-    for (auto i = 0; i < realInstr.bytes - 1; i++) {
-      args[i] = bus->read(regs.PC++);
+  if( ins_decode.bytes > 1 ) {
+    for (auto i = 0; i < ins_decode.bytes - 1; i++) {
+      params[ i ] = bus->read( regs.PC++ );
     }
   }
 
   std::cout << "Hit breakpoint at " << setHex( 4 ) << addrCurrentInstr << std::endl;
-  debug( realInstr, args[ 0 ], args[ 1 ] );
+  debug( ins_decode, params[ 0 ], params[ 1 ] );
 
-  return( this->*realInstr.impl )( realInstr, args[ 0 ], args[ 1 ] );
+  return( this->*ins_decode.impl )( ins_decode, params[ 0 ], params[ 1 ] );
 }
 
 void

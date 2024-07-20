@@ -220,7 +220,10 @@ private:
   int Hmask = 0b0010'0000;
   int Cmask = 0b0001'0000;
 
-  bool dbgStep( std::stringstream& );
+  InstDetails ins_decode;
+  u8 params[ 2 ] = { 0 };
+
+  bool dbgStep(std::stringstream &);
   bool dbgDump( std::stringstream& );
   bool dbgBreak( std::stringstream& );
   bool dbgContinue( std::stringstream& );

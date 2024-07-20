@@ -223,6 +223,8 @@ private:
   InstDetails ins_decode;
   u8 params[ 2 ] = { 0 };
 
+  void decode();
+
   bool dbgStep(std::stringstream &);
   bool dbgDump( std::stringstream& );
   bool dbgBreak( std::stringstream& );

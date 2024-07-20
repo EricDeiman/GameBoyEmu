@@ -199,8 +199,16 @@ CPU::dbgSetPC( std::stringstream& is ) {
   is >> std::hex >> addr;
   regs.PC = addr;
 
-  addrCurrentInstr = regs.PC;
+  decode();
 
+  std::cout << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
+
+  return false;
+}
+
+void
+CPU::decode() {
+  addrCurrentInstr = regs.PC;
   u8 ins = bus->read( regs.PC++ );
 
   ins_decode = instrs[ ins ];
@@ -210,10 +218,6 @@ CPU::dbgSetPC( std::stringstream& is ) {
       params[ i ] = bus->read( regs.PC++ );
     }
   }
-
-  std::cout << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
-
-  return false;
 }
 
 void
@@ -223,18 +227,7 @@ CPU::_clock() {
   if( ticks >= waitUntilTicks ) {
     processInterrupts();
 
-    // Read the instruction at PC
-    addrCurrentInstr = regs.PC;
-
-    u8 ins = bus->read( regs.PC++ );
-
-    ins_decode = instrs[ ins ];
-
-    if( ins_decode.bytes > 1 ) {
-      for( auto i = 0; i < ins_decode.bytes - 1; i++ ) {
-        params[ i ] = bus->read( regs.PC++ );
-      }
-    }
+    decode();
 
     if( singleStepMode ) {
       debug( ins_decode, params[ 0 ], params[ 1 ] );

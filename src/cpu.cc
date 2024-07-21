@@ -348,7 +348,13 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     case 0x6: {
       // Load r8 encoded in instruction with immediate d8
       auto dest = pr8[ ( instr.binary >> 3 ) & 0x7 ];
-      regs.*dest = parm1;
+      if( dest != &Registers::F ) {
+        regs.*dest = parm1;
+      }
+      else {
+        // This is LD (HL),d8
+        bus->write( regs.HL, parm1 );
+      }
       }
       break;
     case 0x8:
@@ -377,7 +383,8 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       // Load  d8 into 8-bit register
       int reg = ( instr.binary >> 3 ) & 0x7;
       auto dest = pr8[ reg ];
-
+      // The LD instruction with sub op code 0xe don't write to (HL)
+      // so no need to check for dest of &Registers::F
       regs.*dest = parm1;
     }
       break;  // block zero opcode e
@@ -735,7 +742,7 @@ CPU::CP( const InstDetails& instr, u8 parm1, u8 )    {
 u8
 CPU::AND(const InstDetails& instr, u8 param1, u8 ) {
 
-  if( instr.binary & 0b1010'0000 ) {
+  if( ( instr.binary & 0xC0 ) != 0xC0 ) {
     // With register
     auto otherReg = pr8[ instr.binary & 0x7 ];
     if( otherReg != &Registers::F ) {
@@ -805,7 +812,7 @@ CPU::DEC( const InstDetails& instr, u8, u8 ) {
 
 u8
 CPU::XOR( const InstDetails& instr, u8 parm1, u8 ) {
-  bool isD8 = instr.binary & 0b1110'1110;
+  bool isD8 = (instr.binary & 0b1100'0000) == 0b1100'0000;
   regs.F = 0;
 
   if( isD8 ) {
@@ -825,6 +832,7 @@ CPU::XOR( const InstDetails& instr, u8 parm1, u8 ) {
       u8 data = bus->read( regs.HL ) & 0xff;
       regs.A ^= data;
     }
+
     if (regs.A == 0) {
       regs.F |= Zmask;
     }

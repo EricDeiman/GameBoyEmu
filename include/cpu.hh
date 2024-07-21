@@ -252,7 +252,7 @@ private:
     { "c",        { &CPU::dbgContinue, "" } },
     { "poke",     { &CPU::dbgPoke, "(p)oke <address> <data>" } },
     { "p",        { &CPU::dbgPoke, "" } },
-    { "setPC",    { &CPU::dbgSetPC, "setPC <address>"} }
+    { "setPC",    { &CPU::dbgSetPC, "setPC <address>" } }
   };
 
   InstDetails instrs[512]{

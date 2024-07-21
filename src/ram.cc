@@ -248,7 +248,7 @@ RAM::hexDump( u16 start, u16 count ){
       os << "  ";
     }
     else {
-      os << setHex( 2 ) << ( read8( i + startAddress ) & 0xff);
+      os << setHex( 2 ) << ( read8( i + startAddress ) & 0xff );
     }
 
     if( i % 8 == 7 ) {

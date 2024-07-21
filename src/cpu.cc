@@ -840,23 +840,26 @@ CPU::ADD( const InstDetails& instr, u8 parm1, u8 ) {
 
 u8
 CPU::SUB( const InstDetails& instr, u8 parm1, u8 ) {
-  bool isD8 = ( instr.binary & 0xc ) == 0xc;
+  bool isD8 = ( instr.binary & 0xc0 ) == 0xc0;
   u8 result;
+  auto regA = static_cast< int >( regs.A );
 
   regs.F = 0;
 
   if( isD8 ) {
-    add( regs.A, -( parm1 & 0xff ), result );
+    auto data = static_cast< int >( parm1 & 0xff );
+    add( regA, -data, result );
   }
   else {
     auto otherReg = pr8[ instr.binary & 0b111 ];
 
     if( otherReg != &Registers::F ) {
-      add( regs.A, -( regs.*otherReg ), result );
+      auto data = static_cast<int>(regs.*otherReg);
+      add(regA, -data, result);
     }
     else {
       // This is ADD A,(HL)
-      u8 data = bus->read( regs.HL ) & 0xff;
+      auto data = static_cast< int >( bus->read( regs.HL ) & 0xff );
       add( regs.A, -data, result );
     }
   }

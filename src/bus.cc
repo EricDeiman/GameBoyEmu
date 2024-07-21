@@ -91,6 +91,7 @@ Bus::doIO( u16 address, u8 data ) {
       break;
 
     case SCX:
+    case SCY:
     case LY:
     case LCDC: {
       // TODO: Fix me, should this work?  For debugging cpu_instrs.gb

@@ -145,7 +145,7 @@ public:
   u8 SRA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SRA not implemented" ); }
   u8 SRL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SRL not implemented" ); }
   u8 STOP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "STOP not implemented" ); }
-  u8 SUB( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SUB not implemented" ); }
+  u8 SUB( const InstDetails&, u8, u8 );
   u8 SWAP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SWAP not implemented" ); }
   u8 XOR( const InstDetails&, u8, u8 );
 

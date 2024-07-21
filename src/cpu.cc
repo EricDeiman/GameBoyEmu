@@ -838,6 +838,35 @@ CPU::ADD( const InstDetails& instr, u8 parm1, u8 ) {
   return instr.cycles1;
 }
 
+u8
+CPU::SUB( const InstDetails& instr, u8 parm1, u8 ) {
+  bool isD8 = ( instr.binary & 0xc ) == 0xc;
+  u8 result;
+
+  regs.F = 0;
+
+  if( isD8 ) {
+    add( regs.A, -( parm1 & 0xff ), result );
+  }
+  else {
+    auto otherReg = pr8[ instr.binary & 0b111 ];
+
+    if( otherReg != &Registers::F ) {
+      add( regs.A, -( regs.*otherReg ), result );
+    }
+    else {
+      // This is ADD A,(HL)
+      u8 data = bus->read( regs.HL ) & 0xff;
+      add( regs.A, -data, result );
+    }
+  }
+
+  regs.A = result;
+  regs.F |= Nmask;
+
+  return instr.cycles1;
+}
+
 // u8
 // CPU::ADC( const InstDetails &instr, u8 parm1, u8 parm2 ) {
 //   u8 adc_a_r8 = 0b1000'1000;

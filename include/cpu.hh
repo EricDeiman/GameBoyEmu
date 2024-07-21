@@ -216,6 +216,7 @@ private:
   std::ostream& formatHex( std::ostream&, int );
 
   void add( int, int, u8& );
+  void inc( int, int, u8& );
 
   int Zmask = 0b1000'0000;
   int Nmask = 0b0100'0000;
@@ -234,19 +235,24 @@ private:
   bool dbgPoke( std::stringstream& );
   bool dbgSetPC( std::stringstream& );
 
-  dictionary< std::string, bool ( CPU::* )( std::stringstream& ) >
+  struct dbgCmd {
+    bool ( CPU::*handle )( std::stringstream & );
+    std::string desc;
+  };
+
+  dictionary< std::string, dbgCmd >
   dbgHandlers = {
-    { "step",     &CPU::dbgStep },
-    { "s",        &CPU::dbgStep },
-    { "dump",     &CPU::dbgDump },
-    { "d",        &CPU::dbgDump },
-    { "break",    &CPU::dbgBreak },
-    { "b",        &CPU::dbgBreak },
-    { "continue", &CPU::dbgContinue },
-    { "c",        &CPU::dbgContinue },
-    { "poke",     &CPU::dbgPoke },
-    { "p",        &CPU::dbgPoke },
-    { "setPC",    &CPU::dbgSetPC }
+    { "step",     { &CPU::dbgStep, "(s)tep" } },
+    { "s",        { &CPU::dbgStep, "" } },
+    { "dump",     { &CPU::dbgDump, "(d)ump <address>" } },
+    { "d",        { &CPU::dbgDump, "" } },
+    { "break",    { &CPU::dbgBreak, "(b)reak <address>" } },
+    { "b",        { &CPU::dbgBreak, "" } },
+    { "continue", { &CPU::dbgContinue, "(c)ontinue" } },
+    { "c",        { &CPU::dbgContinue, "" } },
+    { "poke",     { &CPU::dbgPoke, "(p)oke <address> <data>" } },
+    { "p",        { &CPU::dbgPoke, "" } },
+    { "setPC",    { &CPU::dbgSetPC, "setPC <address>"} }
   };
 
   InstDetails instrs[512]{

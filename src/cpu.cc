@@ -108,9 +108,9 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
     commandLine >> command;
 
-    auto handle = dbgHandlers.find( command );
-    if( handle != dbgHandlers.end() ) {
-      auto shouldReturn = ( this->*handle->second )( commandLine );
+    auto cmd = dbgHandlers.find( command );
+    if( cmd != dbgHandlers.end() ) {
+      auto shouldReturn = ( this->*cmd->second.handle )( commandLine );
       if( shouldReturn ) {
         return;
       }
@@ -120,14 +120,16 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
       std::vector< std::string > keys;
       for( auto i : dbgHandlers ) {
-        keys.push_back( i.first );
+        if( !i.second.desc.empty() ) {
+          keys.push_back( i.second.desc );
+        }
       }
       std::sort( keys.begin(), keys.end() );
 
-      std::cout << "Available commands are ";
+      std::cout << "Available commands are: ";
 
       for( auto k : keys ) {
-        std::cout << k << " ";
+        std::cout << k << "; ";
       }
 
       std::cout << std::endl;
@@ -390,13 +392,16 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     break;
   case 1: {
     // load register to register
-    u8 srcIndex = instr.binary & 0b111;
-    u8 dstIndex = ( instr.binary >> 3 ) & 0b111;
+    auto srcPtr = pr8[ instr.binary & 0b111 ];
+    auto dstPtr = pr8[ ( instr.binary >> 3 ) & 0b111 ];
 
-    auto srcPtr = pr8[ srcIndex ];
-    auto dstPtr = pr8[ dstIndex ];
-
-    regs.*dstPtr = regs.*srcPtr;
+    if( dstPtr != &Registers::F ) {
+      regs.*dstPtr = regs.*srcPtr;
+    }
+    else {
+      // This is a load of register to memory at (HL)
+      bus->write( regs.HL, regs.*srcPtr );
+    }
   } // block one
     break;
   case 3: {
@@ -581,6 +586,39 @@ CPU::POP( const InstDetails& instr, u8, u8 ) {
   return instr.cycles1;
 }
 
+void
+CPU::inc( int data, int amt, u8& result ) {
+  // NOTE: does not change the carry flag. (?)
+  auto dataH = data & 0xf;
+  int intResult = data + amt;
+  result = intResult & 0xff;
+
+  bool isC = intResult > result;
+  bool isZ = result == 0;
+  bool isH = dataH + ( amt & 0xf ) > 0xf;
+
+  if( isC ) {
+    regs.F |= Cmask;
+  }
+  else {
+    regs.F &= ~Cmask;
+  }
+
+  if( isZ ) {
+    regs.F |= Zmask;
+  }
+  else {
+    regs.F &= ~Zmask;
+  }
+
+  if( isH ) {
+    regs.F |= Hmask;
+  }
+  else {
+    regs.F &= ~Hmask;
+  }
+}
+
 u8
 CPU::INC( const InstDetails& instr, u8, u8 ) {
   // is it a 16-bit register or 8-bit register to increment?
@@ -593,18 +631,14 @@ CPU::INC( const InstDetails& instr, u8, u8 ) {
   else {
     auto reg = pr8[ ( instr.binary >> 3 ) & 0b111 ];
     if( reg != &Registers::F ) {
-      u8 data = ( regs.*reg + 1 ) & 0xff;
-      regs.*reg = data;
-      if( data == 0 ) {
-        regs.F |= Zmask;
-      }
+      u8 result;
+      inc( regs.*reg, 1, result );
+      regs.*reg = result;
     }
     else {
-      u8 data = ( bus->read( regs.HL ) + 1 ) & 0xff;
-      bus->write( regs.HL, data );
-      if( data == 0 ) {
-        regs.F |= Zmask;
-      }
+      u8 result;
+      inc( bus->read( regs.HL ), 1, result );
+      bus->write( regs.HL, result );
     }
     regs.F &= ~Nmask;
   }
@@ -750,18 +784,15 @@ CPU::DEC( const InstDetails& instr, u8, u8 ) {
     auto reg = pr8[ ( instr.binary >> 3 ) & 0x7 ];
 
     if( reg != &Registers::F ) {
-      regs.*reg -= 1;
-      if ( regs.*reg == 0 ) {
-        regs.F |= Zmask;
-      }
+      u8 result;
+      inc( regs.*reg, -1, result );
+      regs.*reg = result;
     }
     else {
       // This is really DEC (HL)
-      auto result = bus->read( regs.HL ) - 1;
+      u8 result;
+      inc( bus->read( regs.HL ), -1, result );
       bus->write( regs.HL, result );
-      if( result == 0 ) {
-        regs.F |= Zmask;
-      }
     }
 
     regs.F |= Nmask;

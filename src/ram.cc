@@ -4,12 +4,18 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
 
 namespace fs = std::filesystem;
 
 #include "../include/ram.hh"
+
 #include "../include/bus.hh"
+#include "../include/cpu.hh"
+#include "../include/mbc1.hh"
+#include "../include/no_mbc.hh"
 
 // Game Boy memory map
 //  $FFFF 	      Interrupt Enable Flag
@@ -58,7 +64,13 @@ RAM::read8( u16 address ) {
     logUnusableRAMaccess( "read", address );
   }
 
-  return _ram[ correctForEchoRAM( address ) ] & 0xff;
+  address = correctForEchoRAM(address);
+
+  if( address <= maxCartRom ) {
+    return _cart[ mbc->getCartAddress( address ) ] & 0xff;
+  }
+
+  return _ram[ address ] & 0xff;
 }
 
 void
@@ -67,7 +79,22 @@ RAM::write( u16 address, u8 data ) {
     logUnusableRAMaccess( "write", address );
   }
 
+  if( address <= maxCartRom ) {
+    mbc->write( address, data );
+  }
+
   _ram[ correctForEchoRAM( address ) ] = data;
+}
+
+void
+RAM::dbgWrite( u16 address, u8 data ) {
+  // Where to write: cart or ram?
+  if( address <= maxCartRom ) {
+    _cart[ address ] = data;
+  }
+  else {
+    _ram[ address ] = data;
+  }
 }
 
 dictionary< int, std::string >CartType = {
@@ -126,6 +153,8 @@ RAM::RAM() {
   std::string cartFileName;
 
   try {
+    _ram.reserve( 0xffff );
+
     auto keys = conf->GetKeys();
 
     auto hasCartConfig = std::find( keys.begin(), keys.end(), "Cart" );
@@ -136,45 +165,62 @@ RAM::RAM() {
       fs::path fileName{ cartFileName };
 
       auto fileSize{ fs::file_size( fileName ) };
-      _ram.reserve( fileSize );
+      _cart.reserve( fileSize );
 
       std::ifstream inFile{ fileName };
-      inFile.read( _ram.data(), fileSize );
+      inFile.read( _cart.data(), fileSize );
 
       _log->Write( Log::info, "Finished loading cartridge file " + cartFileName );
 
       // Print cart header to log
       char buffer[ 1024 ] = { 0 };
-      sprintf( buffer, "   Title = %s", static_cast< char* >( _ram.data() + 0x134 ) );
+      sprintf( buffer, "   Title = %s", static_cast< char* >( _cart.data() + 0x134 ) );
       _log->Write( Log::info, buffer );
 
-      sprintf( buffer, "   Old licensee code = 0x%02x", _ram[ 0x14b ] );
+      sprintf( buffer, "   Old licensee code = 0x%02x", _cart[ 0x14b ] );
       _log->Write( Log::info, buffer );
 
       sprintf( buffer, "   New licensee code = %c%c",
-               static_cast< char >( _ram[ 0x144 ] ),
-               static_cast< char >( _ram[ 0x145 ] ) );
+               static_cast< char >( _cart[ 0x144 ] ),
+               static_cast< char >( _cart[ 0x145 ] ) );
       _log->Write( Log::info, buffer );
 
       sprintf( buffer, "   Cartridge type = 0x%02x ( %s )",
-               _ram[ 0x147 ], CartType[ _ram[ 0x147 ] ].c_str() );
+               _ram[ 0x147 ], CartType[ _cart[ 0x147 ] ].c_str() );
       _log->Write( Log::info, buffer );
+      switch( _cart[ 0x147 ] ) {
+
+      case 0x0:
+        mbc = std::make_shared< NoMBC >();
+        break;
+
+      case 0x1:
+        mbc = std::make_shared< MBC1 >();
+        break;
+
+      default: {
+        char buffer[ 1024 ] = { 0 };
+        sprintf( buffer, "Unknown cartridge type 0x%02x", _cart[ 0x147 ] );
+        throw std::runtime_error( buffer );
+        }
+        break;
+      }
 
       sprintf( buffer, "   ROM size = 0x%02x ( %s )",
-               _ram[ 0x148 ], ROMsizes[ static_cast< int >( _ram[ 0x148 ] ) ].c_str() );
+               _ram[ 0x148 ], ROMsizes[ static_cast< int >( _cart[ 0x148 ] ) ].c_str() );
       _log->Write( Log::info, buffer );
 
       sprintf( buffer, "   RAM size = 0x%02x ( %s )",
-               _ram[ 0x149 ], RAMsizes[ static_cast< int >( _ram[ 0x149 ] ) ].c_str() );
+               _ram[ 0x149 ], RAMsizes[ static_cast< int >( _cart[ 0x149 ] ) ].c_str() );
       _log->Write( Log::info, buffer );
 
-      sprintf( buffer, "   Destination code = 0x%02x", _ram[ 0x14a ] );
+      sprintf( buffer, "   Destination code = 0x%02x", _cart[ 0x14a ] );
       _log->Write( Log::info, buffer );
 
-      sprintf( buffer, "   Header checksum = 0x%02x", _ram[ 0x14d ] );
+      sprintf( buffer, "   Header checksum = 0x%02x", _cart[ 0x14d ] );
       _log->Write( Log::info, buffer );
 
-      sprintf(buffer, "   Global checksum = 0x%02hhx%02hhx", _ram[ 0x14e ], _ram[ 0x14f ] );
+      sprintf(buffer, "   Global checksum = 0x%02hhx%02hhx", _cart[ 0x14e ], _cart[ 0x14f ] );
       _log->Write( Log::info, buffer );
 
     }
@@ -223,6 +269,3 @@ RAM::hexDump( u16 start, u16 count ){
 
   return os.str();
 }
-
-
-

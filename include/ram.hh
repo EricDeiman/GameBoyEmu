@@ -3,9 +3,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include "common.hh"
+
+#include "mbc.hh"
 
 // TODO:This is where the address map needs to be implemented.
 
@@ -80,6 +83,7 @@ public:
 
   u8 read8( u16 );
   void write( u16, u8 );
+  void dbgWrite( u16, u8 );
 
   void setBus( Bus* );
 
@@ -87,7 +91,12 @@ public:
 
 private:
   std::vector< char > _ram;
+  std::vector< char > _cart;
   Bus* _bus;
+
+  u16 maxCartRom = 0x7FFF;
+
+  std::shared_ptr< MBC >mbc;
 };
 
 #endif

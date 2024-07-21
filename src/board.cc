@@ -5,6 +5,7 @@ Board::Board() {
   bus.initialize( &cpu, &ram, &timer, &serial );
   cpu.initialize( &bus );
   timer.initialize( &cpu, &ram, &bus );
+  ram.setBus( &bus );
   serial.initialize( &bus );
 }
 

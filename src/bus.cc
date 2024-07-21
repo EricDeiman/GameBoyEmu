@@ -90,26 +90,27 @@ Bus::doIO( u16 address, u8 data ) {
       serial->write();
       break;
 
-    case LY:{
+    case SCX:
+    case LY:
+    case LCDC: {
       // TODO: Fix me, should this work?  For debugging cpu_instrs.gb
-      char buffer[ 1024 ] = { 0 };
-      sprintf( buffer, "Write to LCD LY port with data 0x%02x from address 0x%04x"
+      char buffer[1024] = {0};
+      sprintf( buffer, "Write to LCD  port 0x%04x with data 0x%02x from address 0x%04x"
                " not properly implemented yet",
-               data, cpu->addrCurrentInstr );
-      _log->Write( Log::warn, buffer );
+               address, data, cpu->addrCurrentInstr );
+      _log->Write(Log::warn, buffer);
       ram->write( address, data );
       }
       break;
 
-    case LCDC:{
-      // TODO: Fix me, should this work?  For debugging cpu_instrs.gb
-      char buffer[1024] = {0};
-      sprintf( buffer, "Write to LCD Control port with data 0x%02x from address 0x%04x"
-               " not properly implemented yet",
-               data, cpu->addrCurrentInstr );
-      _log->Write(Log::warn, buffer);
+    case BGP:
+    case OBP0:
+    case OBP1: {
+      char buffer[ 1024 ] = { 0 };
+      sprintf( buffer, "Palette port 0x%04x not implemented yet", address );
+      _log->Write( Log::warn, buffer );
       ram->write( address, data );
-      }
+    }
       break;
 
     case 0xff4f:
@@ -170,7 +171,17 @@ Bus::write(u16 address, u8 data ){
   }
 }
 
-Timer *
+void
+Bus::dbgWrite( u16 address, u8 data ) {
+  ram->dbgWrite( address, data );
+}
+
+Timer*
 Bus::getTimer() {
   return timer;
+}
+
+CPU*
+Bus::getCPU() {
+  return cpu;
 }

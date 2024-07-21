@@ -106,12 +106,14 @@ public:
 
   u8 read( u16 );
   void write( u16, u8 );
+  void dbgWrite( u16, u8 );
 
   std::string hexDump( u16, u16 );
 
   void doIO( u16, u8 );
 
   Timer* getTimer();
+  CPU* getCPU();
 
 private:
   CPU* cpu;

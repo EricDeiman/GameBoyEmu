@@ -156,7 +156,7 @@ CPU::dbgBreak( std::stringstream& is ) {
   u16 addr;
   is >> std::hex >> addr;
   breakpoints[ addr ] =  bus->read( addr );
-  bus->write( addr, debugOpcode );
+  bus->dbgWrite( addr, debugOpcode );
   std::cout << "breakpoint set at address " << setHex( 4 ) << addr <<
     std::endl;
 

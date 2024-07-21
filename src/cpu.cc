@@ -593,16 +593,8 @@ CPU::inc( int data, int amt, u8& result ) {
   int intResult = data + amt;
   result = intResult & 0xff;
 
-  bool isC = intResult > result;
   bool isZ = result == 0;
   bool isH = dataH + ( amt & 0xf ) > 0xf;
-
-  if( isC ) {
-    regs.F |= Cmask;
-  }
-  else {
-    regs.F &= ~Cmask;
-  }
 
   if( isZ ) {
     regs.F |= Zmask;

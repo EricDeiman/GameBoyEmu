@@ -327,15 +327,34 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       this->regs.*dest = data;
     } // block zero opcode zero
       break;
-    case 0x2:
-      throw std::runtime_error( "Block zero LD instruction 0x2 not implemented" );
+    case 0x2: {
+      // Load register A into memory pointed to by r16
+      auto regIndex = instr.binary >> 4 & 0b111;
+      auto reg = pr16_1[ regIndex ];
+      if( regIndex <= 1 ) {
+        bus->write( regs.*reg, regs.A );
+      }
+      else if( regIndex == 2 ) {
+        // LD (HL+), A
+        bus->write( regs.HL++, regs.A );
+      }
+      else if( regIndex == 3 ) {
+        bus->write( regs.HL--, regs.A );
+      }
+      }
       break;  // block zero opcode 2
+    case 0x6: {
+      // Load r8 encoded in instruction with immediate d8
+      auto dest = pr8[ ( instr.binary >> 3 ) & 0x7 ];
+      regs.*dest = parm1;
+      }
+      break;
     case 0x8:
       throw std::runtime_error( "Block zero LD instruction 0x8 not implemented" );
       break;  // block zero opcode 8
     case 0xa: {
       // Load register A from memory pointed to by 16-bit register
-      u8 sourceReg = (instr.binary >> 4) & 0b11;
+       u8 sourceReg = (instr.binary >> 4) & 0b11;
       switch( sourceReg ) {
       case 0x0:  // from register (BC)
         regs.A = bus->read( regs.BC );
@@ -357,7 +376,7 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       int reg = ( instr.binary >> 3 ) & 0x7;
       auto dest = pr8[ reg ];
 
-      this->regs.*dest = parm1;
+      regs.*dest = parm1;
     }
       break;  // block zero opcode e
     default: {
@@ -377,7 +396,7 @@ CPU::LD( const InstDetails& instr, u8 parm1, u8 parm2 ) {
     auto srcPtr = pr8[ srcIndex ];
     auto dstPtr = pr8[ dstIndex ];
 
-    this->regs.*dstPtr = this->regs.*srcPtr;
+    regs.*dstPtr = regs.*srcPtr;
   } // block one
     break;
   case 3: {
@@ -549,7 +568,7 @@ u8
 CPU::PUSH( const InstDetails& instr, u8, u8 ) {
   // source register is in bits 4 and 5
   u8 registerIndex = ( instr.binary >> 4 ) & 0x3;
-  push( this->regs.*( pr16_2[ registerIndex ] ) );
+  push( regs.*( pr16_2[ registerIndex ] ) );
 
   return instr.cycles1;
 }
@@ -557,7 +576,7 @@ CPU::PUSH( const InstDetails& instr, u8, u8 ) {
 u8
 CPU::POP( const InstDetails& instr, u8, u8 ) {
   u8 destinationIndex = ( instr.binary >> 4 ) & 0x3;
-  this->regs.*( pr16_2[ destinationIndex ] ) = pop();
+  regs.*( pr16_2[ destinationIndex ] ) = pop();
 
   return instr.cycles1;
 }
@@ -569,11 +588,25 @@ CPU::INC( const InstDetails& instr, u8, u8 ) {
 
   if( is16bit ) {
     u8 registerIndex = ( instr.binary >> 4 ) & 0b11;
-    this->regs.*(pr16_1[registerIndex]) = (this->regs.*(pr16_1[registerIndex]) + 1) & 0xffff;
+    regs.*(pr16_1[registerIndex]) = (regs.*(pr16_1[registerIndex]) + 1) & 0xffff;
   }
   else {
-    u8 registerIndex = ( instr.binary >> 3 ) & 0b111;
-    this->regs.*(pr8[ registerIndex]) = (this->regs.*(pr8[ registerIndex]) + 1) & 0xff;
+    auto reg = pr8[ ( instr.binary >> 3 ) & 0b111 ];
+    if( reg != &Registers::F ) {
+      u8 data = ( regs.*reg + 1 ) & 0xff;
+      regs.*reg = data;
+      if( data == 0 ) {
+        regs.F |= Zmask;
+      }
+    }
+    else {
+      u8 data = ( bus->read( regs.HL ) + 1 ) & 0xff;
+      bus->write( regs.HL, data );
+      if( data == 0 ) {
+        regs.F |= Zmask;
+      }
+    }
+    regs.F &= ~Nmask;
   }
 
   return instr.cycles1;
@@ -585,7 +618,7 @@ CPU::OR(const InstDetails& instr, u8 parm1, u8) {
     // OR the A register with another register and store the result in A
     u8 registerIndex = instr.binary & 0b0111;
     if( pr8[ registerIndex ] != &Registers::F ) {
-      regs.A |= this->regs.*pr8[ registerIndex ];
+      regs.A |= regs.*pr8[ registerIndex ];
     }
     else {
       // This is really OR (HL)
@@ -647,7 +680,7 @@ CPU::CP( const InstDetails& instr, u8 parm1, u8 )    {
     // Compare register A with other register
     auto otherReg = pr8[ instr.binary & 0x7 ];
     if( otherReg != &Registers::F ) {
-      add( regs.A, -( this->regs.*otherReg ), result );
+      add( regs.A, -( regs.*otherReg ), result );
     }
     else {
       // Compare register A with data in memory location (HL)
@@ -669,6 +702,138 @@ CPU::CP( const InstDetails& instr, u8 parm1, u8 )    {
   }
 
   regs.F |= Nmask;
+
+  return instr.cycles1;
+}
+
+u8
+CPU::AND(const InstDetails& instr, u8 param1, u8 ) {
+
+  if( instr.binary & 0b1010'0000 ) {
+    // With register
+    auto otherReg = pr8[ instr.binary & 0x7 ];
+    if( otherReg != &Registers::F ) {
+      regs.A &= regs.*otherReg;
+    }
+    else {
+      // With data at address in (HL)
+      auto data = bus->read( regs.HL ) & 0xff;
+      regs.A &= data;
+    }
+  }
+  else {
+    // With immediate data
+    regs.A &= param1;
+  }
+
+  if( regs.A == 0 ) {
+    regs.F |= Zmask;
+  }
+
+  regs.F |= Hmask;
+
+  return instr.cycles1;
+}
+
+u8
+CPU::DEC( const InstDetails& instr, u8, u8 ) {
+
+  switch( instr.binary & 0b111 ) {
+  case 3: {
+    // DEC r16 NOTE: does not update flags
+    regs.*pr16_1[ ( instr.binary >> 4 ) & 0x3 ] -= 1;
+    }
+    break;
+
+  case 5: {
+    // DEC r8 NOTE: DOES update flags
+    auto reg = pr8[ ( instr.binary >> 3 ) & 0x7 ];
+
+    if( reg != &Registers::F ) {
+      regs.*reg -= 1;
+      if ( regs.*reg == 0 ) {
+        regs.F |= Zmask;
+      }
+    }
+    else {
+      // This is really DEC (HL)
+      auto result = bus->read( regs.HL ) - 1;
+      bus->write( regs.HL, result );
+      if( result == 0 ) {
+        regs.F |= Zmask;
+      }
+    }
+
+    regs.F |= Nmask;
+  }
+    break;
+
+  default: {
+    char buffer[ 1024 ] = { 0 };
+    sprintf( buffer, "In DEC with invalid opcode 0x%02x from address 0x%04x",
+             instr.binary, addrCurrentInstr );
+    _log->Write( Log::warn, buffer );
+  }
+    break;
+  }
+
+  return instr.cycles1;
+}
+
+u8
+CPU::XOR( const InstDetails& instr, u8 parm1, u8 ) {
+  bool isD8 = instr.binary & 0b1110'1110;
+  regs.F = 0;
+
+  if( isD8 ) {
+    u8 result = regs.A ^ parm1;
+    regs.A = result;
+    if( result == 0 ) {
+      regs.F |= Zmask;
+    }
+  }
+  else {
+    auto reg = pr8[ instr.binary & 0x7 ];
+    if( reg != &Registers::F ) {
+      regs.A ^= regs.*reg;
+    }
+    else {
+      // This is really regs.A ^ (HL)
+      u8 data = bus->read( regs.HL ) & 0xff;
+      regs.A ^= data;
+    }
+    if (regs.A == 0) {
+      regs.F |= Zmask;
+    }
+  }
+
+  return instr.cycles1;
+}
+
+u8
+CPU::ADD( const InstDetails& instr, u8 parm1, u8 ) {
+  bool isD8 = ( instr.binary & 0xc0 ) == 0xc0;
+  u8 result;
+
+  regs.F = 0;
+
+  if( isD8 ) {
+    add( regs.A, parm1, result );
+  }
+  else {
+    auto otherReg = pr8[ instr.binary & 0b111 ];
+
+    if( otherReg != &Registers::F ) {
+      add( regs.A, regs.*otherReg, result );
+    }
+    else {
+      // This is ADD A,(HL)
+      u8 data = bus->read( regs.HL ) & 0xff;
+      add( regs.A, data, result );
+    }
+  }
+
+  regs.A = result;
 
   return instr.cycles1;
 }

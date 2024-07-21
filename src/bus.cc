@@ -1,5 +1,6 @@
 
 #include "../include/bus.hh"
+#include "../include/cpu.hh"
 #include "../include/ram.hh"
 #include "../include/serial.hh"
 #include "../include/timer.hh"
@@ -70,34 +71,72 @@ Bus::doIO( u16 address, u8 data ) {
       data = 0;
       ram->write( address, data );
       break;
+
     case TAC:
       timer->setTAC( data );
       ram->write( address, data );
       break;
+
     case IF:
       ram->write( address, data );
       break;
+
     case SB:
       ram->write( address, data );
       break;
+
     case SC:
       ram->write( address, data );
       serial->write();
       break;
-    case LY:
+
+    case LY:{
       // TODO: Fix me, should this work?  For debugging cpu_instrs.gb
+      char buffer[ 1024 ] = { 0 };
+      sprintf( buffer, "Write to LCD LY port with data 0x%02x from address 0x%04x"
+               " not properly implemented yet",
+               data, cpu->addrCurrentInstr );
+      _log->Write( Log::warn, buffer );
       ram->write( address, data );
+      }
       break;
+
+    case LCDC:{
+      // TODO: Fix me, should this work?  For debugging cpu_instrs.gb
+      char buffer[1024] = {0};
+      sprintf( buffer, "Write to LCD Control port with data 0x%02x from address 0x%04x"
+               " not properly implemented yet",
+               data, cpu->addrCurrentInstr );
+      _log->Write(Log::warn, buffer);
+      ram->write( address, data );
+      }
+      break;
+
+    case 0xff4f:
+    case 0xff68:
+    case 0xff69: {
+      // Not sure why the cpu_instr.gb test rom is writing here.  This port has something
+      // to do with Color Game Boy BG palettes index.
+      char buffer[ 1024 ] = { 0 };
+      sprintf( buffer, "Write to CGB port 0x%04x with data 0x%02x from address 0x%04x. "
+               "Why?", address, data, cpu->addrCurrentInstr );
+      _log->Write( Log::warn, buffer );
+      ram->write( address, data );
+      }
+      break;
+
     default: {
       if( IOAddress::SOUND_START <= address && address <= IOAddress::SOUND_END ) {
         char buffer[ 1024 ] = { 0 };
-        sprintf( buffer, "Sound IO port 0x%04x not implemented yet, attempt to write 0x%02x",
-                 address, data );
+        sprintf( buffer, "Sound IO port 0x%04x not implemented yet, attempt to"
+                 " write 0x%02x, from address 0x%04x",
+                 address, data, cpu->addrCurrentInstr );
         _log->Write( Log::warn, buffer );
       }
       else {
         char buffer[ 1024 ] = { 0 };
-        sprintf( buffer, "Bus::doIO to address 0x%04x not implemented", address );
+        sprintf( buffer, "Bus::doIO to address 0x%04x not implemented from address 0x%04x",
+                 address, cpu->addrCurrentInstr );
         throw std::runtime_error( buffer );
       }
     }

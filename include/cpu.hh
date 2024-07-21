@@ -102,32 +102,32 @@ public:
   };
 
   u8 ADC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ADC not implemented" ); }
-  u8 ADD( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ADD not implemented" ); }
-  u8 AND( const InstDetails&, u8, u8 ) { throw std::runtime_error( "AND not implemented" ); }
+  u8 ADD( const InstDetails&, u8, u8 );
+  u8 AND( const InstDetails&, u8, u8 );
   u8 BIT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "BIT not implemented" ); }
-  u8 CALL( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "CALL not implemented" ); }
+  u8 CALL( const InstDetails&, u8, u8 );
   u8 CCF( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CCF not implemented" ); }
-  u8 CP( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "CP not implemented" ); }
+  u8 CP( const InstDetails&, u8, u8 );
   u8 CPL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "CPL not implemented" ); }
   u8 DAA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "DAA not implemented" ); }
-  u8 DBG( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "DBG not implemented" ); }
-  u8 DEC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "DEC not implemented" ); }
-  u8 DI( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "DI not implemented" ); }
+  u8 DBG( const InstDetails&, u8, u8 );
+  u8 DEC( const InstDetails&, u8, u8 );
+  u8 DI( const InstDetails&, u8, u8 );
   u8 EI( const InstDetails&, u8, u8 ) { throw std::runtime_error( "EI not implemented" ); }
   u8 HALT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "HALT not implemented" ); }
   u8 ILL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ILL not implemented" ); }
-  u8 INC( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "INC not implemented" ); }
-  u8 JP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JP not implemented" ); }
-  u8 JR( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "JR not implemented" ); }
-  u8 LD( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LD not implemented" ); }
-  u8 LDH( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "LDH not implemented" ); }
-  u8 NOP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "NOP not implemented" ); }
-  u8 OR( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "OR not implemented" ); }
-  u8 POP( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "POP not implemented" ); }
+  u8 INC( const InstDetails&, u8, u8 );
+  u8 JP( const InstDetails&, u8, u8 );
+  u8 JR( const InstDetails&, u8, u8 );
+  u8 LD( const InstDetails&, u8, u8 );
+  u8 LDH( const InstDetails&, u8, u8 );
+  u8 NOP( const InstDetails&, u8, u8 );
+  u8 OR( const InstDetails&, u8, u8 );
+  u8 POP( const InstDetails&, u8, u8 );
   u8 PREFIX( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PREFIX not implemented" ); }
-  u8 PUSH( const InstDetails&, u8, u8 );  // { throw std::runtime_error( "PUSH not implemented" ); }
+  u8 PUSH( const InstDetails&, u8, u8 );
   u8 RES( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RES not implemented" ); }
-  u8 RET( const InstDetails&, u8, u8 ); // { throw std::runtime_error( "RET not implemented" ); }
+  u8 RET( const InstDetails&, u8, u8 );
   u8 RETI( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RETI not implemented" ); }
   u8 RL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RL not implemented" ); }
   u8 RLA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLA not implemented" ); }
@@ -147,12 +147,12 @@ public:
   u8 STOP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "STOP not implemented" ); }
   u8 SUB( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SUB not implemented" ); }
   u8 SWAP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SWAP not implemented" ); }
-  u8 XOR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "XOR not implemented" ); }
+  u8 XOR( const InstDetails&, u8, u8 );
 
   std::string debugSummary( const InstDetails&, u8, u8 );
   // This method halts everything until it returns
   void debug( const InstDetails&, u8, u8 );
- 
+
 private:
 
   u8 Registers::*pr8[ 8 ] {

@@ -29,6 +29,9 @@ https://cplusplus.com/forum/beginner/75750/
 https://stackoverflow.com/questions/41024409/algorithm-for-adding-two-integers-based-on-the-use-of-standard-logical-operation
   how to use logic operations to calculate carry flag
 
+https://rgbds.gbdev.io/docs/v0.8.0/gbz80.7#SRL_r8
+  another resource for what the op codes mean
+  
 DMG_ROM.bin  claims to be original GameBoy startup ROM built into the device
 
 The Game Boy CPU is clocked at 4.194303 MHz

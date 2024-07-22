@@ -124,7 +124,7 @@ public:
   u8 NOP( const InstDetails&, u8, u8 );
   u8 OR( const InstDetails&, u8, u8 );
   u8 POP( const InstDetails&, u8, u8 );
-  u8 PREFIX( const InstDetails&, u8, u8 ) { throw std::runtime_error( "PREFIX not implemented" ); }
+  u8 PREFIX( const InstDetails&, u8, u8 );
   u8 PUSH( const InstDetails&, u8, u8 );
   u8 RES( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RES not implemented" ); }
   u8 RET( const InstDetails&, u8, u8 );
@@ -133,7 +133,7 @@ public:
   u8 RLA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLA not implemented" ); }
   u8 RLC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLC not implemented" ); }
   u8 RLCA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLCA not implemented" ); }
-  u8 RR( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RR not implemented" ); }
+  u8 RR( const InstDetails&, u8, u8 );
   u8 RRA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RRA not implemented" ); }
   u8 RRC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RRC not implemented" ); }
   u8 RRCA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RRCA not implemented" ); }
@@ -143,7 +143,7 @@ public:
   u8 SET( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SET not implemented" ); }
   u8 SLA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SLA not implemented" ); }
   u8 SRA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SRA not implemented" ); }
-  u8 SRL( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SRL not implemented" ); }
+  u8 SRL( const InstDetails&, u8, u8 );
   u8 STOP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "STOP not implemented" ); }
   u8 SUB( const InstDetails&, u8, u8 );
   u8 SWAP( const InstDetails&, u8, u8 ) { throw std::runtime_error( "SWAP not implemented" ); }
@@ -222,6 +222,8 @@ private:
   int Nmask = 0b0100'0000;
   int Hmask = 0b0010'0000;
   int Cmask = 0b0001'0000;
+
+  u16 prefixForAddress = -1;
 
   InstDetails ins_decode;
   u8 params[ 2 ] = { 0 };

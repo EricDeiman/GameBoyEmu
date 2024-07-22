@@ -215,7 +215,12 @@ CPU::dbgSetPC( std::stringstream& is ) {
 void
 CPU::decode() {
   addrCurrentInstr = regs.PC;
-  u8 ins = bus->read( regs.PC++ );
+  u16 ins = bus->read( regs.PC++ );
+
+  if( ins != debugOpcode && prefixForAddress == addrCurrentInstr ) {
+    ins |= 0b1'0000'0000;
+    prefixForAddress = -1;
+  }
 
   ins_decode = instrs[ ins ];
 
@@ -674,13 +679,23 @@ CPU::OR(const InstDetails& instr, u8 parm1, u8) {
 u8
 CPU::DBG( const InstDetails& instr, u8, u8 ) {
   // Set things up for the call to the debug display
-  ins_decode = instrs[ breakpoints[ addrCurrentInstr ] ];
+  u16 op_code = breakpoints[ addrCurrentInstr ];
+
+  if( prefixForAddress == addrCurrentInstr ) {
+    op_code |= 0b1'0000'0000;
+  }
+
+  ins_decode = instrs[ op_code ];
 
   // Read arguments, if any
   if( ins_decode.bytes > 1 ) {
     for (auto i = 0; i < ins_decode.bytes - 1; i++) {
       params[ i ] = bus->read( regs.PC++ );
     }
+  }
+
+  if( trace.is_open() ) {
+    trace << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
   }
 
   std::cout << "Hit breakpoint at " << setHex( 4 ) << addrCurrentInstr << std::endl;
@@ -893,6 +908,74 @@ CPU::SUB( const InstDetails& instr, u8 parm1, u8 ) {
 
   regs.A = result;
   regs.F |= Nmask;
+
+  return instr.cycles1;
+}
+
+u8
+CPU::PREFIX(const InstDetails& instr, u8, u8) {
+
+  prefixForAddress = regs.PC;
+
+  return instr.cycles1;
+}
+
+u8
+CPU::SRL( const InstDetails& instr, u8, u8 ) {
+
+  auto reg = pr8[ instr.binary & 0b111 ];
+  regs.F = 0;
+
+  if( reg != &Registers::F ) {
+    if( regs.*reg & 0b1 ) {
+      regs.F |= Cmask;
+    }
+
+    regs.*reg >>= 1;
+
+    if( regs.*reg == 0 ) {
+      regs.F |= Zmask;
+    }
+  }
+  else {
+    // This is SRL (HL)
+    u8 data = bus->read( regs.HL );
+    if( data & 0b1 ) {
+      regs.F |= Cmask;
+    }
+
+    data >>= 1;
+
+    if( data == 0 ) {
+      regs.F |= Zmask;
+    }
+
+    bus->write( regs.HL, data );
+  }
+
+  return instr.cycles1;
+}
+
+u8
+CPU::RR( const InstDetails& instr, u8, u8 ) {
+
+  auto reg = pr8[ instr.binary & 0b111 ];
+  regs.F = 0;
+
+  if( reg != &Registers::F ) {
+    bool oldBit0 = regs.*reg & 0b1;
+    bool oldFlagC = regs.F & Cmask;
+
+    regs.*reg >>= 1;
+
+    if( oldBit0 ) {
+      regs.F |= Cmask;
+    }
+
+    if( oldFlagC ) {
+      regs.*reg &= 0b1000'0000;
+    }
+  }
 
   return instr.cycles1;
 }

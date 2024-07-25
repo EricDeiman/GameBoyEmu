@@ -100,7 +100,7 @@ public:
     char C;      // carry flag
   };
 
-  u8 ADC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "ADC not implemented" ); }
+  u8 ADC( const InstDetails&, u8, u8 );
   u8 ADD( const InstDetails&, u8, u8 );
   u8 AND( const InstDetails&, u8, u8 );
   u8 BIT( const InstDetails&, u8, u8 ) { throw std::runtime_error( "BIT not implemented" ); }

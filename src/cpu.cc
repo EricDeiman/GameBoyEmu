@@ -1048,25 +1048,39 @@ CPU::RRA( const InstDetails &instr, u8, u8 ) {
   return instr.cycles1;
 }
 
-// u8
-// CPU::ADC( const InstDetails &instr, u8 parm1, u8 parm2 ) {
-//   u8 adc_a_r8 = 0b1000'1000;
-//   u8 Areg_idx = 0b111;
+u8
+CPU::ADC( const InstDetails &instr, u8 parm1, u8 ) {
+  u8 block = instr.binary >> 6;
+  u8 result;
 
-//   u8 Registers::*dest_reg = pr8[ Areg_idx ];
+  switch( block ) {
+  case 2: {
+    // Add register and carry to register A
+    auto srcReg = pr8[ instr.binary & 0x7 ];
+    result = regs.*srcReg;
+    if( regs.F & Cmask ) {
+      add( regs.*srcReg, 1, result );
+    }
+    add( result, regs.A, result );
+  }
 
-//   u8 src_data;
-//   u8 dest_data = regs.*dest_reg;
+    break;
+  case 3: {
+    // Add immediate with carry to register A
+    parm1 &= 0xff;
+    if( regs.F & Cmask ) {
+      add( parm1, 1, result );
+    }
+    add( parm1, regs.A, result );
+  }
 
-//   if( ( static_cast< u8 >( instr.binary ) & adc_a_r8 ) == adc_a_r8 ) {
-//     // ADC A, r8
-//     u8 Registers::*src_reg = pr8[ static_cast< u8 >( instr.binary ) & 0b111 ];
-//     src_data = regs.*src_reg;
-//   }
-//   else {
-//     // ADC A, d8
-//     // src_data = parm1;
-//   }
+    break;
+  default:
+    throw std::runtime_error( "In ADC instruction with invalid opcode" );
+    break;
+  }
 
-//   return instr.cycles1;
-// }
+  regs.A = result;
+
+  return instr.cycles1;
+}

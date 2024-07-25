@@ -982,33 +982,68 @@ CPU::SRL( const InstDetails& instr, u8, u8 ) {
   return instr.cycles1;
 }
 
+u8 CPU::rotateRight( u8 data ) {
+  bool oldBit0 = data & 0b1;
+
+  regs.F = 0;
+
+  data >>= 1;
+
+  if( oldBit0 ) {
+    regs.F |= Cmask;
+    data |= 0b1000'0000;
+  }
+
+  if( data == 0 ) {
+    regs.F |= Zmask;
+  }
+
+  return data;
+}
+
+u8
+CPU::rotateRightC( u8 data ) {
+  bool oldBit0 = ( data & 0b1 ) > 0;
+  bool oldFlagC = ( regs.F & Cmask ) > 0;
+
+  regs.F = 0;
+
+  data >>= 1;
+
+  if( oldBit0 ) {
+    regs.F |= Cmask;
+  }
+
+  if( oldFlagC ) {
+    data |= 0b1000'0000;
+  }
+
+  if( data == 0 ) {
+    regs.F |= Zmask;
+  }
+
+  return data;
+}
+
 u8
 CPU::RR( const InstDetails& instr, u8, u8 ) {
 
   auto reg = pr8[ instr.binary & 0b111 ];
-  regs.F = 0;
 
   if( reg != &Registers::F ) {
-    bool oldBit0 = regs.*reg & 0b1;
-    bool oldFlagC = regs.F & Cmask;
-
-    regs.*reg >>= 1;
-
-    if( oldBit0 ) {
-      regs.F |= Cmask;
-    }
-
-    if( oldFlagC ) {
-      regs.*reg &= 0b1000'0000;
-    }
-
-    if( regs.*reg == 0 ) {
-      regs.F |= Zmask;
-    }
+    regs.*reg = rotateRightC( regs.*reg );
   }
   else {
     throw std::runtime_error( "RR (HL) not implemented" );
   }
+
+  return instr.cycles1;
+}
+
+u8
+CPU::RRA( const InstDetails &instr, u8, u8 ) {
+
+  regs.A = rotateRightC( regs.A );
 
   return instr.cycles1;
 }

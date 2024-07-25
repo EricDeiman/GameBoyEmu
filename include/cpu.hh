@@ -133,7 +133,7 @@ public:
   u8 RLC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLC not implemented" ); }
   u8 RLCA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RLCA not implemented" ); }
   u8 RR( const InstDetails&, u8, u8 );
-  u8 RRA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RRA not implemented" ); }
+  u8 RRA( const InstDetails&, u8, u8 );
   u8 RRC( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RRC not implemented" ); }
   u8 RRCA( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RRCA not implemented" ); }
   u8 RST( const InstDetails&, u8, u8 ) { throw std::runtime_error( "RST not implemented" ); }
@@ -216,6 +216,8 @@ private:
 
   void add( int, int, u8& );
   void inc( int, int, u8& );
+  u8 rotateRightC( u8 );
+  u8 rotateRight( u8 );
 
   int Zmask = 0b1000'0000;
   int Nmask = 0b0100'0000;

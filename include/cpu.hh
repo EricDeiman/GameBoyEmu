@@ -229,6 +229,9 @@ private:
   u8 params[ 2 ] = { 0 };
 
   void decode();
+  void prefixDecode();
+
+  void ( CPU::*decodeHandle )() = &CPU::decode;
 
   bool dbgStep(std::stringstream &);
   bool dbgDump( std::stringstream& );

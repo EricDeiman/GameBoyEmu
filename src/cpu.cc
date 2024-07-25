@@ -205,7 +205,7 @@ CPU::dbgSetPC( std::stringstream& is ) {
   is >> std::hex >> addr;
   regs.PC = addr;
 
-  decode();
+  ( this->*decodeHandle )();
 
   std::cout << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
 
@@ -217,11 +217,6 @@ CPU::decode() {
   addrCurrentInstr = regs.PC;
   u16 ins = bus->read( regs.PC++ );
 
-  if( ins != debugOpcode && prefixForAddress == addrCurrentInstr ) {
-    ins |= 0b1'0000'0000;
-    prefixForAddress = -1;
-  }
-
   ins_decode = instrs[ ins ];
 
   if( ins_decode.bytes > 1 ) {
@@ -231,14 +226,32 @@ CPU::decode() {
   }
 }
 
-void
-CPU::_clock() {
+void CPU::prefixDecode() {
+  addrCurrentInstr = regs.PC;
+  u16 ins = bus->read( regs.PC++ );
+
+  if( ins != debugOpcode ) {
+    ins |= 0b1'0000'0000;
+  }
+
+  ins_decode = instrs[ins];
+
+  if (ins_decode.bytes > 1) {
+    for (auto i = 0; i < ins_decode.bytes - 1; i++) {
+      params[i] = bus->read(regs.PC++);
+    }
+  }
+
+  decodeHandle = &CPU::decode;
+}
+
+void CPU::_clock() {
   ticks++;
 
   if( ticks >= waitUntilTicks ) {
     processInterrupts();
 
-    decode();
+    ( this->*decodeHandle )();
 
     if( trace.is_open() ) {
       trace << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
@@ -252,7 +265,6 @@ CPU::_clock() {
 
     waitUntilTicks = ticks + cycleCnt;
   }
-
 }
 
 u8
@@ -916,6 +928,7 @@ u8
 CPU::PREFIX(const InstDetails& instr, u8, u8) {
 
   prefixForAddress = regs.PC;
+  decodeHandle = &CPU::prefixDecode;
 
   return instr.cycles1;
 }
@@ -975,6 +988,13 @@ CPU::RR( const InstDetails& instr, u8, u8 ) {
     if( oldFlagC ) {
       regs.*reg &= 0b1000'0000;
     }
+
+    if( regs.*reg == 0 ) {
+      regs.F |= Zmask;
+    }
+  }
+  else {
+    throw std::runtime_error( "RR (HL) not implemented" );
   }
 
   return instr.cycles1;

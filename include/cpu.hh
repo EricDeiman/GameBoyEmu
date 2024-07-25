@@ -25,7 +25,6 @@ public:
   uint64_t ticks = 0;
   uint64_t waitUntilTicks = 0;
   bool interruptsEnabled = false;
-  bool singleStepMode = false;
 
   struct Registers {
     union {
@@ -232,6 +231,11 @@ private:
   void prefixDecode();
 
   void ( CPU::*decodeHandle )() = &CPU::decode;
+
+  std::vector< void ( CPU::* )() > preExec;
+
+  void Trace();
+  void Step();
 
   bool dbgStep(std::stringstream &);
   bool dbgDump( std::stringstream& );

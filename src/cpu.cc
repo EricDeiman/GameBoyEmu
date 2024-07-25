@@ -19,12 +19,13 @@ CPU::CPU() {
 
   auto hasStartDebug = std::find( keys.begin(), keys.end(), "StartInDebug" );
   if( hasStartDebug != keys.end() ) {
-    singleStepMode = conf->GetValue( *hasStartDebug ) == "true";
+    preExec.push_back( &CPU::Step );
   }
 
   auto hasTrace = std::find( keys.begin(), keys.end(), "TraceLog");
   if( hasTrace != keys.end() ) {
     trace.open( conf->GetValue( *hasTrace ) );
+    preExec.push_back( &CPU::Trace );
   }
 
   regs.PC = 0x100;
@@ -139,7 +140,12 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
 
 bool
 CPU::dbgStep( std::stringstream& is ) {
-  singleStepMode = true;
+  auto i = std::find( preExec.begin(), preExec.end(), &CPU::Step );
+
+  if( i == preExec.end() ) {
+    preExec.push_back( &CPU::Step );
+  }
+
   return true;
 }
 
@@ -168,7 +174,8 @@ CPU::dbgBreak( std::stringstream& is ) {
 bool
 CPU::dbgContinue( std::stringstream& is ) {
     if( breakpoints.size() > 0 ) {
-      singleStepMode = false;
+      auto i = std::find( preExec.begin(), preExec.end(), &CPU::Step );
+      preExec.erase( i );
       return true;
     }
     else {
@@ -245,6 +252,16 @@ void CPU::prefixDecode() {
   decodeHandle = &CPU::decode;
 }
 
+void
+CPU::Trace() {
+  trace << debugSummary(ins_decode, params[0], params[1]) << std::endl;
+}
+
+void
+CPU::Step() {
+  debug(ins_decode, params[0], params[1]);
+}
+
 void CPU::_clock() {
   ticks++;
 
@@ -253,12 +270,8 @@ void CPU::_clock() {
 
     ( this->*decodeHandle )();
 
-    if( trace.is_open() ) {
-      trace << debugSummary( ins_decode, params[ 0 ], params[ 1 ] ) << std::endl;
-    }
-
-    if( singleStepMode ) {
-      debug( ins_decode, params[ 0 ], params[ 1 ] );
+    for( auto f : preExec ) {
+      ( this->*f )();
     }
 
     auto cycleCnt = ( this->*ins_decode.impl )( ins_decode, params[ 0 ], params[ 1 ] );

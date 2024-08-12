@@ -141,12 +141,12 @@ std::string ROMsizes[] = {
 };
 
 std::string RAMsizes[] = {
-  "No RAM",
-  "Public domain cartridge",
-  "8 KiB",
-  "32 KiB",
-  "128 KiB",
-  "64 KiB"
+    "No RAM",
+    "Public domain cartridge",
+    "8 KiB",
+    "32 KiB",
+    "128 KiB",
+    "64 KiB"
 };
 
 RAM::RAM() {
@@ -154,6 +154,9 @@ RAM::RAM() {
 
   try {
     _ram.reserve( 0xffff );
+
+    // TODO: debugging with gameboy doctor, should be removed at some point
+    _ram[ 0xff44 ] = 0x90;
 
     auto keys = conf->GetKeys();
 
@@ -222,6 +225,7 @@ RAM::RAM() {
 
       sprintf(buffer, "   Global checksum = 0x%02hhx%02hhx", _cart[ 0x14e ], _cart[ 0x14f ] );
       _log->Write( Log::info, buffer );
+
 
     }
     else {

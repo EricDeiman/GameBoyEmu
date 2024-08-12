@@ -149,8 +149,12 @@ public:
   u8 XOR( const InstDetails&, u8, u8 );
 
   std::string debugSummary( const InstDetails&, u8, u8 );
+  std::string debugGameboyDoctor( const InstDetails &, u8, u8 );
+
+  std::string (CPU::*tracer)(const InstDetails &, u8, u8) = &CPU::debugSummary;
+
   // This method halts everything until it returns
-  void debug( const InstDetails&, u8, u8 );
+  void debug(const InstDetails &, u8, u8);
 
 private:
 
@@ -215,7 +219,7 @@ private:
   std::ostream& formatHex( std::ostream&, int );
 
   void add( int, int, u8& );
-  void inc( int, int, u8& );
+  void inc( unsigned, unsigned, u8& );
   u8 rotateRightC( u8 );
   u8 rotateRight( u8 );
 

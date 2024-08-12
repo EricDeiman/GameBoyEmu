@@ -7,6 +7,7 @@
 #include <regex>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "../include/cpu.hh"
@@ -26,8 +27,26 @@ CPU::CPU() {
   if( hasTrace != keys.end() ) {
     trace.open( conf->GetValue( *hasTrace ) );
     preExec.push_back( &CPU::Trace );
+    tracer = &CPU::debugSummary;
+
+    auto hasTracer = std::find( keys.begin(), keys.end(), "Tracer" );
+    if( hasTracer != keys.end() ) {
+      if( conf->GetValue( *hasTracer ) == "GBDoc" ) {
+        tracer = &CPU::debugGameboyDoctor;
+      }
+    }
   }
 
+  // TODO: This is in place of running the built-in ROM
+  regs.A = 0x01;
+  regs.F = 0xb0;
+  regs.B = 0;
+  regs.C = 0x13;
+  regs.D = 0;
+  regs.E = 0xd8;
+  regs.H = 0x01;
+  regs.L = 0x4d;
+  regs.SP = 0xfffe;
   regs.PC = 0x100;
 
 }
@@ -136,6 +155,21 @@ CPU::debug( const InstDetails& instr, u8 parm1, u8 parm2 ) {
       std::cout << std::endl;
     }
   }
+}
+
+std::string
+CPU::debugGameboyDoctor(const InstDetails&, u8, u8) {
+  char buffer[ 1024 ] = { 0 };
+
+  sprintf(buffer,
+          "A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x "
+          "SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x",
+          regs.A, regs.F, regs.B, regs.C, regs.D, regs.E, regs.H, regs.L,
+          regs.SP, addrCurrentInstr,
+          bus->read( addrCurrentInstr ), bus->read( addrCurrentInstr + 1),
+          bus->read( addrCurrentInstr + 2), bus->read( addrCurrentInstr + 3) );
+
+  return buffer;
 }
 
 bool
@@ -254,7 +288,7 @@ void CPU::prefixDecode() {
 
 void
 CPU::Trace() {
-  trace << debugSummary(ins_decode, params[0], params[1]) << std::endl;
+  trace << ( this->*tracer )( ins_decode, params[0], params[1] ) << std::endl;
 }
 
 void
@@ -600,7 +634,14 @@ CPU::RET( const InstDetails& instr, u8, u8 ) {
   }
   else {
     // conditional return
-    throw std::runtime_error( "Conditional return not yet implemented" );
+    bool doReturn = checkCondCode( ( instr.binary >> 3 ) & 0b11 );
+    if( doReturn ) {
+      regs.PC = pop();
+      return instr.cycles1;
+    }
+    else {
+      return instr.cycles2;
+    }
   }
 
   return 0;
@@ -624,14 +665,14 @@ CPU::POP( const InstDetails& instr, u8, u8 ) {
 }
 
 void
-CPU::inc( int data, int amt, u8& result ) {
+CPU::inc( unsigned data, unsigned amt, u8& result ) {
   // NOTE: does not change the carry flag. (?)
-  auto dataH = data & 0xf;
-  int intResult = data + amt;
+  unsigned dataH = data & 0xf;
+  int intResult = ( int )data + ( int )amt;
   result = intResult & 0xff;
 
   bool isZ = result == 0;
-  bool isH = dataH + ( amt & 0xf ) > 0xf;
+  bool isH = dataH + amt > 0xf;
 
   if( isZ ) {
     regs.F |= Zmask;
@@ -732,13 +773,14 @@ CPU::DBG( const InstDetails& instr, u8, u8 ) {
 void
 CPU::add( int parm1, int parm2, u8& result ) {
   int intResult = parm1 + parm2;
-  result = intResult & 0xff;
 
-  bool isZ = result == 0;
+  bool isZ = ( intResult & 0xff ) == 0;
   bool isH = ( parm1 & 0x0f ) + ( parm2 & 0x0f ) > 0x0f;
   bool isC = static_cast< unsigned >( intResult ) > 0xff;
 
   regs.F = ( isZ * Zmask ) | ( isH * Hmask ) | ( isC * Cmask );
+
+  result = intResult & 0xff;
 }
 
 u8
@@ -1052,13 +1094,16 @@ u8
 CPU::ADC( const InstDetails &instr, u8 parm1, u8 ) {
   u8 block = instr.binary >> 6;
   u8 result;
+  auto oldFlagC = regs.F & Cmask;
+
+  regs.F = 0;
 
   switch( block ) {
   case 2: {
     // Add register and carry to register A
     auto srcReg = pr8[ instr.binary & 0x7 ];
     result = regs.*srcReg;
-    if( regs.F & Cmask ) {
+    if( oldFlagC ) {
       add( regs.*srcReg, 1, result );
     }
     add( result, regs.A, result );
@@ -1068,7 +1113,7 @@ CPU::ADC( const InstDetails &instr, u8 parm1, u8 ) {
   case 3: {
     // Add immediate with carry to register A
     parm1 &= 0xff;
-    if( regs.F & Cmask ) {
+    if( oldFlagC ) {
       add( parm1, 1, result );
     }
     add( parm1, regs.A, result );
